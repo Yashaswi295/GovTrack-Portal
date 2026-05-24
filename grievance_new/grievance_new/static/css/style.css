@@ -1,0 +1,64 @@
+:root{--brand:#0d6efd;--brand2:#20c997}
+.hero #heroTitle{opacity:0; transform: translateY(20px)}
+.hero #heroSubtitle{opacity:0; transform: translateY(20px)}
+[data-float]{opacity:0; transform: translateY(20px)}
+
+.badge-step {
+  width: 42px;
+  height: 42px;
+  background: #0d6efd;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin: 0 auto -20px auto;
+  position: relative;
+  z-index: 10;
+  transition: transform .4s ease;
+}
+
+.grievance-step {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all .8s ease;
+}
+
+.grievance-step.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.badge-step.pop {
+  animation: popBadge .5s ease;
+}
+
+@keyframes popBadge {
+  0% { transform: scale(0.3); }
+  60% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+.hero {
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(1200px 600px at 10% 10%, rgba(13,110,253,0.15), transparent),
+              radial-gradient(1200px 600px at 90% 40%, rgba(25,135,84,0.12), transparent),
+              linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+.blob {
+  position: absolute; border-radius: 50%; filter: blur(40px); opacity: .50;
+}
+
+.blob-1 { width: 320px; height: 320px; background: #0d6efd; top: -80px; left: -80px; }
+.blob-2 { width: 280px; height: 280px; background: #20c997; bottom: -60px; right: -60px; }
+
+.floating-card {
+  transition: .3s ease;
+}
+.floating-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 1rem 2rem rgba(0,0,0,.08);
+}

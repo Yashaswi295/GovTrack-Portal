@@ -1,0 +1,418 @@
+{% extends 'user/base.html' %}
+
+{% block page_title %}Grievance Details{% endblock %}
+
+{% block extra_css %}
+<style>
+  .detail-page {
+    padding: 8px 0 24px;
+  }
+
+  .detail-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+
+  .detail-header h2 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--text-main) !important;
+  }
+
+  .detail-header p {
+    margin: 6px 0 0;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+
+  .glass-card {
+    background: rgba(30, 41, 59, 0.5) !important;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  }
+
+  .card-header-custom {
+    padding: 18px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255,255,255,0.02) !important;
+  }
+
+  .card-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #f8fafc !important;
+    margin: 0;
+  }
+
+  .detail-body {
+    padding: 20px;
+  }
+
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  @media (max-width: 1200px) {
+    .meta-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 576px) {
+    .meta-grid { grid-template-columns: 1fr; }
+  }
+
+  .meta-item {
+    background: rgba(15, 23, 42, 0.55);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 14px;
+  }
+
+  .meta-label {
+    color: #64748b;
+    font-weight: 800;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+
+  .meta-value {
+    color: #f8fafc;
+    font-weight: 800;
+    font-size: 0.95rem;
+    line-height: 1.2;
+    word-break: break-word;
+  }
+
+  .badge-custom {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border: 1px solid;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .badge-open {
+    background: rgba(245, 158, 11, 0.1) !important;
+    color: #fbbf24 !important;
+    border-color: rgba(245, 158, 11, 0.3);
+  }
+
+  .badge-resolved {
+    background: rgba(16, 185, 129, 0.1) !important;
+    color: #34d399 !important;
+    border-color: rgba(16, 185, 129, 0.3);
+  }
+
+  .badge-default {
+    background: rgba(148, 163, 184, 0.1) !important;
+    color: #94a3b8 !important;
+    border-color: rgba(148, 163, 184, 0.2);
+  }
+
+  .badge-category {
+    background: rgba(99, 102, 241, 0.1) !important;
+    color: #a5b4fc !important;
+    border-color: rgba(99, 102, 241, 0.3);
+  }
+
+  .section {
+    margin-top: 14px;
+  }
+
+  .section-title {
+    font-weight: 900;
+    color: #f8fafc !important;
+    margin: 0 0 10px;
+    font-size: 1rem;
+  }
+
+  .text-block {
+    background: rgba(15, 23, 42, 0.55);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 14px;
+    color: #f8fafc;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .img-box {
+    background: rgba(15, 23, 42, 0.55);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 14px;
+  }
+
+  .img-box img {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    display: block;
+  }
+
+  .top-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .reply-meta {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
+  .reply-chip {
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #cbd5e1;
+    font-weight: 700;
+    font-size: 0.8rem;
+  }
+
+  .feedback-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .feedback-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    align-items: end;
+  }
+
+  @media (max-width: 576px) {
+    .feedback-form { grid-template-columns: 1fr; }
+  }
+
+  .input-glass {
+    width: 100%;
+    background: rgba(15, 23, 42, 0.55);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 14px;
+    padding: 12px 14px;
+    color: #f8fafc;
+    font-weight: 700;
+  }
+
+  .input-glass:focus {
+    outline: none;
+    border-color: rgba(99,102,241,0.45);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+  }
+
+  .label-glass {
+    color: #94a3b8;
+    font-weight: 800;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+  }
+
+  .btn-glass-primary {
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(99,102,241,0.45);
+    background: rgba(99,102,241,0.15);
+    color: #e0e7ff;
+    font-weight: 900;
+    width: 100%;
+  }
+
+  .btn-glass-primary:hover {
+    background: rgba(99,102,241,0.22);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detail-page">
+
+  <div class="detail-header">
+    <div>
+      <h2>Grievance Details</h2>
+      <p>Review your submitted information</p>
+    </div>
+    <div class="top-actions">
+      <a href="{{ url_for('history') }}" class="btn-glass-outline" style="padding: 10px 16px;">
+        <i class="fas fa-arrow-left"></i>
+        <span>Back to History</span>
+      </a>
+      <a href="{{ url_for('dashboard') }}" class="btn-glass-outline" style="padding: 10px 16px;">
+        <i class="fas fa-columns"></i>
+        <span>Dashboard</span>
+      </a>
+      <a href="{{ url_for('download_grievance_pdf', g_id=grievance.id) }}"
+        class="btn-glass-outline" style="padding: 10px 16px;">
+        <i class="fas fa-file-pdf"></i>
+        <span>Save Report</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="glass-card">
+    <div class="card-header-custom">
+      <h3 class="card-title">#{{ grievance.id }} — {{ grievance.title }}</h3>
+      <div>
+        {% if grievance.status == 'Open' %}
+          <span class="badge-custom badge-open"><i class="fas fa-hourglass-half"></i>Open</span>
+        {% elif grievance.status == 'Resolved' %}
+          <span class="badge-custom badge-resolved"><i class="fas fa-check-circle"></i>Resolved</span>
+        {% else %}
+          <span class="badge-custom badge-default"><i class="fas fa-info-circle"></i>{{ grievance.status }}</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="detail-body">
+      <div class="meta-grid">
+        <div class="meta-item">
+          <div class="meta-label">Category</div>
+          <div class="meta-value"><span class="badge-custom badge-category">{{ grievance.category or '—' }}</span></div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Department</div>
+          <div class="meta-value">{{ grievance.department_name or '—' }}</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Created</div>
+          <div class="meta-value">{{ grievance.created_at or '—' }}</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Location</div>
+          <div class="meta-value">
+            {% if grievance.latitude and grievance.longitude %}
+              {{ grievance.latitude }}, {{ grievance.longitude }}
+            {% else %}
+              —
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Description</div>
+        <div class="text-block">{{ grievance.description or '—' }}</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Address</div>
+        <div class="text-block">{{ grievance.address or '—' }}</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Supporting Image</div>
+        <div class="img-box">
+          {% if grievance.image_path %}
+            <img src="{{ url_for('static', filename=grievance.image_path) }}" alt="Grievance image">
+          {% else %}
+            <div style="color: var(--text-muted); font-weight: 700;">No image uploaded</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Admin Reply</div>
+        {% if reply and reply.review_text %}
+          <div class="text-block">{{ reply.review_text }}</div>
+          <div class="reply-meta">
+            <span class="reply-chip"><i class="fas fa-user-shield me-2"></i>{{ reply.responder_name or 'Admin' }}</span>
+            {% if reply.created_at %}
+              <span class="reply-chip"><i class="fas fa-clock me-2"></i>{{ reply.created_at }}</span>
+            {% endif %}
+            {% if reply.rating %}
+              <span class="reply-chip"><i class="fas fa-star me-2"></i>{{ reply.rating }}</span>
+            {% endif %}
+          </div>
+
+          {% if reply.image_path %}
+            <div class="img-box" style="margin-top: 12px;">
+              <img src="{{ url_for('static', filename=reply.image_path) }}" alt="Reply attachment">
+            </div>
+          {% endif %}
+        {% else %}
+          <div class="text-block" style="color: var(--text-muted); font-weight: 700;">No admin reply yet</div>
+        {% endif %}
+      </div>
+
+      <div class="section">
+        <div class="section-title">Rate this grievance</div>
+
+        {% if grievance.status == 'Resolved' %}
+          {% if citizen_feedback %}
+            <div class="feedback-grid">
+              <div class="text-block">
+                <div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+                  <div style="font-weight:900;">Your Feedback</div>
+                  <div style="color:#cbd5e1; font-weight:900;"><i class="fas fa-star"></i> {{ citizen_feedback.rating }}/5</div>
+                </div>
+                {% if citizen_feedback.feedback_text %}
+                  <div style="margin-top:10px; color:#e2e8f0; font-weight:700; white-space:pre-wrap;">{{ citizen_feedback.feedback_text }}</div>
+                {% endif %}
+                {% if citizen_feedback.created_at %}
+                  <div style="margin-top:10px; color: var(--text-muted); font-weight:800; font-size:0.85rem;">Submitted on {{ citizen_feedback.created_at }}</div>
+                {% endif %}
+              </div>
+            </div>
+          {% else %}
+            <form class="text-block" method="POST" action="{{ url_for('submit_citizen_feedback', g_id=grievance.id) }}" style="padding:16px;">
+              <div class="feedback-form">
+                <div>
+                  <div class="label-glass">Rating (1-5)</div>
+                  <select name="rating" class="input-glass" required>
+                    <option value="" selected disabled>Select rating</option>
+                    <option value="5">5 - Excellent</option>
+                    <option value="4">4 - Good</option>
+                    <option value="3">3 - Average</option>
+                    <option value="2">2 - Poor</option>
+                    <option value="1">1 - Very Poor</option>
+                  </select>
+                </div>
+                <div>
+                  <button type="submit" class="btn-glass-primary"><i class="fas fa-paper-plane" style="margin-right:8px;"></i>Submit Feedback</button>
+                </div>
+                <div style="grid-column: 1 / -1;">
+                  <div class="label-glass">Message (optional)</div>
+                  <textarea name="feedback_text" class="input-glass" rows="3" placeholder="Tell us about your experience..."></textarea>
+                </div>
+              </div>
+            </form>
+          {% endif %}
+        {% else %}
+          <div class="text-block" style="color: var(--text-muted); font-weight: 700;">You can rate this grievance once it is resolved.</div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}

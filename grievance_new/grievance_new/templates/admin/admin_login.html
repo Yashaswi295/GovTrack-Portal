@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block head %}
+<style>
+  .admin-auth {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    background:
+      radial-gradient(900px 520px at 14% 14%, rgba(245, 158, 11, 0.18), transparent 60%),
+      radial-gradient(1100px 700px at 85% 35%, rgba(239, 68, 68, 0.14), transparent 55%),
+      linear-gradient(180deg, rgba(2, 6, 23, 1) 0%, rgba(15, 23, 42, 1) 100%);
+    overflow: hidden;
+  }
+
+  .admin-noise {
+    position: absolute;
+    inset: 0;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/></filter><rect width="240" height="240" filter="url(%23n)" opacity="0.16"/></svg>');
+    mix-blend-mode: overlay;
+    opacity: 0.35;
+    pointer-events: none;
+  }
+
+  .admin-card {
+    background: rgba(15, 23, 42, 0.74);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-radius: 18px;
+    box-shadow: 0 28px 70px rgba(0,0,0,0.5);
+  }
+
+  .admin-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    color: #fcd34d;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+  }
+
+  .admin-input {
+    background: rgba(2, 6, 23, 0.35) !important;
+    border: 1px solid rgba(255,255,255,0.12) !important;
+    color: #f8fafc !important;
+  }
+
+  .admin-input:focus {
+    border-color: rgba(245, 158, 11, 0.55) !important;
+    box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.12) !important;
+  }
+
+  .admin-help {
+    color: rgba(226,232,240,0.75);
+    font-size: 0.9rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="admin-auth">
+  <div class="admin-noise"></div>
+  <div class="container position-relative" style="z-index:2;">
+    <div class="row justify-content-center align-items-center">
+      <div class="col-11 col-sm-10 col-md-6 col-lg-5">
+        <div class="admin-card p-4 p-md-5">
+          <div class="text-center mb-4">
+            <div class="admin-badge mb-3">
+              <i class="fas fa-user-shield"></i>
+              Admin Console
+            </div>
+            <h2 class="fw-bold mb-1">Admin Login</h2>
+            <div class="admin-help">Restricted access. Authorized users only.</div>
+          </div>
+
+          {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+          {% endwith %}
+
+          <form method="POST" action="{{ url_for('admin_login') }}">
+            <div class="mb-3">
+              <label class="fw-semibold">Username</label>
+              <div class="position-relative">
+                <span class="position-absolute top-50 translate-middle-y" style="left: 14px; color: rgba(148,163,184,0.9)">
+                  <i class="fas fa-user"></i>
+                </span>
+                <input type="text" name="username" class="form-control form-control-lg admin-input" style="padding-left: 44px;" placeholder="username" required>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="fw-semibold">Password</label>
+              <div class="position-relative">
+                <span class="position-absolute top-50 translate-middle-y" style="left: 14px; color: rgba(148,163,184,0.9)">
+                  <i class="fas fa-key"></i>
+                </span>
+                <input type="password" name="password" class="form-control form-control-lg admin-input" style="padding-left: 44px;" placeholder="password" required>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-warning w-100 btn-lg fw-semibold text-dark">
+              Login to Admin Panel
+            </button>
+          </form>
+
+          <div class="mt-4 text-center admin-help">
+            Department login?
+            <a href="{{ url_for('department_login') }}" class="text-warning fw-semibold text-decoration-none">Go to Department</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

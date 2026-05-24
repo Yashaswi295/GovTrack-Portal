@@ -1,0 +1,450 @@
+{% extends 'base.html' %}
+{% block head %}
+<style>
+  .register-page {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 120px 0 60px;
+    overflow: hidden;
+  }
+
+  /* Animated Background Orbs */
+  .register-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.35;
+    animation: float 20s infinite ease-in-out;
+  }
+
+  .orb-register-1 {
+    width: 500px;
+    height: 500px;
+    background: var(--primary);
+    top: -150px;
+    left: -150px;
+    animation-delay: 0s;
+  }
+
+  .orb-register-2 {
+    width: 400px;
+    height: 400px;
+    background: #10b981;
+    bottom: -100px;
+    right: -100px;
+    opacity: 0.25;
+    animation-delay: -5s;
+  }
+
+  .orb-register-3 {
+    width: 300px;
+    height: 300px;
+    background: #f59e0b;
+    top: 40%;
+    right: 20%;
+    opacity: 0.15;
+    animation-delay: -10s;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(30px, -30px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.9); }
+  }
+
+  /* Glass Card */
+  .register-card {
+    width: 100%;
+    max-width: 520px;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+    border: 1px solid var(--glass-border);
+    border-radius: 28px;
+    padding: 48px;
+    box-shadow: 
+      0 25px 50px -12px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    position: relative;
+    z-index: 10;
+    animation: slideUp 0.6s ease-out;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Header */
+  .register-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .register-icon {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 1.75rem;
+    color: white;
+    box-shadow: 0 10px 30px -5px rgba(79, 70, 229, 0.4);
+  }
+
+  .register-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 8px;
+  }
+
+  .register-subtitle {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+
+  /* Form Grid */
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  @media (max-width: 576px) {
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+    .register-card {
+      padding: 32px 24px;
+      margin: 0 16px;
+    }
+  }
+
+  /* Input Groups */
+  .form-group {
+    margin-bottom: 20px;
+    position: relative;
+  }
+
+  .form-label-premium {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: color 0.3s;
+  }
+
+  .form-group:focus-within .form-label-premium {
+    color: var(--primary-light);
+  }
+
+  .input-wrap {
+    position: relative;
+  }
+
+  .form-control-premium {
+    width: 100%;
+    padding: 14px 16px;
+    padding-left: 44px;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    color: var(--text-main);
+    font-size: 0.95rem;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.3s ease;
+    height: auto;
+  }
+
+  .form-control-premium:focus {
+    outline: none;
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    background: rgba(15, 23, 42, 0.8);
+  }
+
+  .input-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    transition: color 0.3s;
+  }
+
+  .form-group:focus-within .input-icon {
+    color: var(--primary-light);
+  }
+
+  /* Submit Button */
+  .btn-register {
+    width: 100%;
+    padding: 16px;
+    margin-top: 8px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px -5px rgba(16, 185, 129, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .btn-register::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: 0.5s;
+  }
+
+  .btn-register:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 40px -5px rgba(16, 185, 129, 0.5);
+  }
+
+  .btn-register:hover::before {
+    left: 100%;
+  }
+
+  .btn-register:active {
+    transform: translateY(0);
+  }
+
+  /* Login Link */
+  .auth-switch {
+    text-align: center;
+    margin-top: 24px;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+
+  .auth-switch a {
+    color: var(--primary-light);
+    text-decoration: none;
+    font-weight: 700;
+    position: relative;
+    transition: color 0.3s;
+  }
+
+  .auth-switch a::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--primary-light);
+    transition: width 0.3s;
+  }
+
+  .auth-switch a:hover::after {
+    width: 100%;
+  }
+
+  /* Flash Messages */
+  .alert-premium {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+    padding: 14px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.9rem;
+    animation: slideIn 0.3s ease;
+  }
+
+  .alert-premium.success {
+    background: rgba(34, 197, 94, 0.1);
+    border-color: rgba(34, 197, 94, 0.2);
+    color: #86efac;
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .btn-close-premium {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    font-size: 1rem;
+    opacity: 0.6;
+    transition: opacity 0.3s;
+  }
+
+  .btn-close-premium:hover {
+    opacity: 1;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="register-page">
+  <!-- Background Orbs -->
+  <div class="register-orb orb-register-1"></div>
+  <div class="register-orb orb-register-2"></div>
+  <div class="register-orb orb-register-3"></div>
+
+  <div class="container position-relative" style="z-index: 10;">
+    <div class="row justify-content-center">
+      <div class="col-md-8 col-lg-6">
+        <div class="register-card">
+          
+          <!-- Header -->
+          <div class="register-header">
+            <div class="register-icon">
+              <i class="fas fa-rocket"></i>
+            </div>
+            <h1 class="register-title">Create Account</h1>
+            <p class="register-subtitle">Join GovTrack to submit and track your grievances</p>
+          </div>
+
+          <!-- Flash Messages -->
+          {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert-premium {{ 'success' if category == 'success' }}" role="alert">
+                <i class="fas {{ 'fa-check-circle' if category == 'success' else 'fa-exclamation-circle' }}"></i>
+                <span>{{ message }}</span>
+                <button type="button" class="btn-close-premium" onclick="this.parentElement.remove()">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            {% endfor %}
+          {% endif %}
+          {% endwith %}
+
+          <!-- Registration Form -->
+          <form method="POST" action="{{ url_for('register') }}" id="registerForm">
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label-premium">Full Name</label>
+                <div class="input-wrap">
+                  <i class="fas fa-user input-icon"></i>
+                  <input type="text" name="name" class="form-control-premium" placeholder="John Doe" required>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label-premium">Mobile Number</label>
+                <div class="input-wrap">
+                  <i class="fas fa-phone input-icon"></i>
+                  <input type="tel" name="mobile_number" class="form-control-premium" placeholder="+1234567890" required>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label-premium">Email Address</label>
+              <div class="input-wrap">
+                <i class="fas fa-envelope input-icon"></i>
+                <input type="email" name="email" class="form-control-premium" placeholder="john@example.com" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label-premium">Password</label>
+              <div class="input-wrap">
+                <i class="fas fa-lock input-icon"></i>
+                <input type="password" name="password" class="form-control-premium" placeholder="••••••••" required>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-register" id="submitBtn">
+              <span>Create Account</span>
+              <i class="fas fa-arrow-right"></i>
+            </button>
+
+          </form>
+
+          <!-- Footer -->
+          <div class="auth-switch">
+            Already have an account? 
+            <a href="{{ url_for('login') }}">Sign In</a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Form submission loading state
+  document.getElementById('registerForm').addEventListener('submit', function(e) {
+    const btn = document.getElementById('submitBtn');
+    const originalContent = btn.innerHTML;
+    
+    btn.style.pointerEvents = 'none';
+    btn.style.opacity = '0.8';
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Creating Account...';
+    
+    // Reset after 3 seconds if form hasn't redirected
+    setTimeout(() => {
+      if (btn.innerHTML.includes('Creating')) {
+        btn.innerHTML = originalContent;
+        btn.style.pointerEvents = 'auto';
+        btn.style.opacity = '1';
+      }
+    }, 3000);
+  });
+
+  // Input animation on load
+  window.addEventListener('load', () => {
+    const inputs = document.querySelectorAll('.form-control-premium');
+    inputs.forEach((input, index) => {
+      input.style.opacity = '0';
+      input.style.transform = 'translateY(10px)';
+      setTimeout(() => {
+        input.style.transition = 'all 0.4s ease';
+        input.style.opacity = '1';
+        input.style.transform = 'translateY(0)';
+      }, 100 * (index + 1));
+    });
+  });
+</script>
+{% endblock %}

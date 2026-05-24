@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block head %}
+<style>
+  .dash-hero { position: relative; overflow: hidden; min-height: calc(100vh - 120px); background:
+    radial-gradient(1000px 520px at 10% 0%, rgba(99,102,241,.20), transparent 60%),
+    radial-gradient(900px 480px at 90% 20%, rgba(32,201,151,.14), transparent 60%),
+    linear-gradient(180deg, rgba(2,6,23,.0) 0%, rgba(2,6,23,.40) 60%, rgba(2,6,23,.0) 100%);
+  }
+  .card-hover { transition: .25s; }
+  .card-hover:hover { transform: translateY(-4px); box-shadow: 0 .75rem 1.5rem rgba(0,0,0,.08); }
+
+  .dash-hero .card {
+    background: rgba(15, 23, 42, 0.80);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  .dash-hero .text-muted { color: rgba(148, 163, 184, 0.9) !important; }
+
+  .users-controls .form-control { min-width: 0; }
+
+  @media (max-width: 576px) {
+    .users-top-actions { width: 100%; }
+    .users-top-actions > a { flex: 1 1 auto; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="dash-hero py-4 py-md-5">
+  <div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
+      <div>
+        <h2 class="fw-bold mb-1">Users</h2>
+        <div class="text-muted">Registered users of the portal</div>
+      </div>
+      <div class="d-flex flex-wrap gap-2 users-top-actions">
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary"><i class="bi bi-speedometer2 me-1"></i> Dashboard</a>
+        <a href="{{ url_for('admin_logout') }}" class="btn btn-outline-danger"><i class="bi bi-box-arrow-right me-1"></i> Logout</a>
+      </div>
+    </div>
+
+    <div class="card card-hover">
+      <div class="card-body">
+        <div class="d-flex flex-column flex-md-row align-items-stretch align-items-md-center justify-content-between gap-2 mb-3">
+          <div class="d-flex align-items-center gap-2">
+            <h5 class="mb-0">All Users</h5>
+            <div class="small text-muted">Search by name, email or mobile</div>
+          </div>
+          <div class="input-group users-controls flex-grow-1 flex-md-grow-0" style="max-width: 420px;">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" id="user-search" class="form-control" placeholder="Search users...">
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle" id="users-table">
+            <thead>
+              <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Email</th>
+                <th scope="col">Mobile</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody">
+              {% if users and users|length > 0 %}
+                {% for u in users %}
+                <tr data-name="{{ (u.full_name or '')|lower }}" data-email="{{ (u.email_id or '')|lower }}" data-mobile="{{ (u.mobile_number or '')|lower }}">
+                  <td class="fw-semibold">{{ u.full_name }}</td>
+                  <td class="small">{{ u.email_id }}</td>
+                  <td class="small">{{ u.mobile_number }}</td>
+                </tr>
+                {% endfor %}
+              {% else %}
+                <tr><td colspan="3" class="text-center text-muted">No users found.</td></tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function(){
+        const input = document.getElementById('user-search');
+        const tbody = document.getElementById('users-tbody');
+        if (!input || !tbody) return;
+        input.addEventListener('input', function(){
+          const q = (this.value || '').trim().toLowerCase();
+          let visible = 0;
+          Array.from(tbody.querySelectorAll('tr')).forEach(tr => {
+            const name = tr.getAttribute('data-name') || '';
+            const email = tr.getAttribute('data-email') || '';
+            const mobile = tr.getAttribute('data-mobile') || '';
+            const match = !q || name.includes(q) || email.includes(q) || mobile.includes(q);
+            tr.style.display = match ? '' : 'none';
+            if (match) visible++;
+          });
+          const emptyRow = tbody.querySelector('tr[data-empty="1"]');
+          if (!q) {
+            emptyRow && (emptyRow.style.display = 'none');
+            return;
+          }
+          if (visible === 0) {
+            if (!emptyRow) {
+              const tr = document.createElement('tr');
+              tr.setAttribute('data-empty','1');
+              tr.innerHTML = '<td colspan="3" class="text-center text-muted">No matching users.</td>';
+              tbody.appendChild(tr);
+            } else {
+              emptyRow.style.display = '';
+            }
+          } else {
+            emptyRow && (emptyRow.style.display = 'none');
+          }
+        });
+      })();
+    </script>
+
+  </div>
+</section>
+{% endblock %}

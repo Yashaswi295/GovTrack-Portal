@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+{% block head %}
+<style>
+  .dept-page { color: #e5e7eb; }
+  .dept-page .text-muted { color: rgba(226,232,240,0.75) !important; }
+  .dept-page .card { background: rgba(15, 23, 42, 0.70); border-color: rgba(255, 255, 255, 0.10); }
+  .dept-page .table { color: #e5e7eb; }
+  .dept-page .table thead th { color: #cbd5e1; border-color: rgba(255,255,255,0.10); }
+  .dept-page .table tbody td { border-color: rgba(255,255,255,0.08); }
+  .dept-page .badge.bg-light { background: rgba(255,255,255,0.10) !important; color: #e5e7eb !important; }
+  .dash-hero { position: relative; overflow: hidden; min-height: calc(100vh - 120px); background:
+    radial-gradient(1000px 520px at 10% 0%, rgba(13,110,253,.20), transparent 60%),
+    radial-gradient(900px 480px at 90% 20%, rgba(32,201,151,.18), transparent 60%),
+    linear-gradient(180deg, rgba(2, 6, 23, 1) 0%, rgba(15, 23, 42, 1) 55%, rgba(2, 6, 23, 1) 100%);
+  }
+  .card-hover { transition: .25s; }
+  .card-hover:hover { transform: translateY(-4px); box-shadow: 0 .75rem 1.5rem rgba(0,0,0,.08); }
+</style>
+{% endblock %}
+{% block content %}
+<section class="dash-hero py-4 py-md-5 dept-page">
+  <div class="container">
+    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
+      <div class="d-flex align-items-center gap-3">
+        <div class="rounded-circle bg-primary-subtle d-inline-flex align-items-center justify-content-center" style="width:48px;height:48px;">
+          <i class="bi bi-list-check text-primary"></i>
+        </div>
+        <div>
+          <h2 class="fw-bold mb-1">Recent Grievances</h2>
+          <div class="text-muted small">For {{ department.name }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card h-100 card-hover">
+      <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <h5 class="mb-0">Latest</h5>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle" id="dept-grievances-table">
+            <thead>
+              <tr>
+                <th scope="col">Id</th>
+                <th scope="col">Title</th>
+                <th scope="col">Category</th>
+                <th scope="col">Status</th>
+                <th scope="col">User Ref</th>
+                <th scope="col">Created</th>
+                <th scope="col" class="text-center">Location</th>
+                <th scope="col" class="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if grievances and grievances|length > 0 %}
+                {% for g in grievances %}
+                <tr>
+                  <td>{{ g.id }}</td>
+                  <td class="fw-semibold">{{ g.title }}</td>
+                  <td><span class="badge bg-light text-dark">{{ g.category }}</span></td>
+                  <td>
+                    {% if g.status == 'Open' %}
+                      <span class="badge bg-warning text-dark">Open</span>
+                    {% elif g.status == 'Resolved' %}
+                      <span class="badge bg-success">Resolved</span>
+                    {% else %}
+                      <span class="badge bg-secondary">{{ g.status }}</span>
+                    {% endif %}
+                  </td>
+                  <td class="small text-muted">{{ g.user_ref }}</td>
+                  <td class="small text-muted">{{ g.created_at }}</td>
+                  <td class="text-center">
+                    {% if g.latitude and g.longitude %}
+                      <a href="https://www.google.com/maps?q={{ g.latitude }},{{ g.longitude }}" target="_blank" rel="noopener" class="text-decoration-none" title="View on map">
+                        <i class="bi bi-geo-alt-fill text-primary"></i>
+                      </a>
+                    {% else %}
+                      <span class="text-muted small">—</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-primary review-btn" data-bs-toggle="modal" data-bs-target="#deptReviewModal" data-id="{{ g.id }}" data-title="{{ g.title }}" data-status="{{ g.status }}">
+                      <i class="bi bi-chat-left-text me-1"></i> Review
+                    </button>
+                  </td>
+                </tr>
+                {% endfor %}
+              {% else %}
+                <tr><td colspan="8" class="text-center text-muted">No grievances to show.</td></tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+<!-- Review Modal -->
+<div class="modal fade" id="deptReviewModal" tabindex="-1" aria-labelledby="deptReviewModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deptReviewModalLabel">Review Grievance: <span id="dept_review_title"></span></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="deptReviewForm" enctype="multipart/form-data">
+        <div class="modal-body">
+          <div id="dept_review_message" class="d-none"></div>
+          <input type="hidden" id="dept_review_gid" name="grievance_id" />
+          <div class="row g-3">
+            <div class="col-12">
+              <label for="dept_review_text" class="form-label">Review Notes</label>
+              <textarea id="dept_review_text" name="review_text" class="form-control" rows="4" placeholder="Add your reply, actions taken, or comments..." required></textarea>
+              <div class="invalid-feedback">Please enter review notes.</div>
+            </div>
+            <div class="col-12 col-md-6">
+              <label for="dept_review_status" class="form-label">Update Status</label>
+              <select id="dept_review_status" name="status" class="form-select">
+                <option value="Open">Open</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Resolved">Resolved</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-6">
+              <label for="dept_review_rating" class="form-label">Priority/Rating (1-5)</label>
+              <input id="dept_review_rating" name="rating" type="number" min="1" max="5" class="form-control" placeholder="Optional" />
+            </div>
+            <div class="col-12">
+              <label for="dept_review_image" class="form-label">Upload Image (optional)</label>
+              <input id="dept_review_image" name="image" type="file" accept="image/*" class="form-control" />
+              <div class="form-text">You can attach a photo as evidence or progress update.</div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button id="dept_review_submit" type="submit" class="btn btn-primary">Save Review</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function(){
+    const bs = window.bootstrap;
+    const reviewModalEl = document.getElementById('deptReviewModal');
+    const modal = bs ? new bs.Modal(reviewModalEl) : null;
+    const form = document.getElementById('deptReviewForm');
+    const gidInput = document.getElementById('dept_review_gid');
+    const titleEl = document.getElementById('dept_review_title');
+    const statusSel = document.getElementById('dept_review_status');
+    const textArea = document.getElementById('dept_review_text');
+    const ratingInput = document.getElementById('dept_review_rating');
+    const submitBtn = document.getElementById('dept_review_submit');
+
+    // open modal on button
+    document.addEventListener('click', function(e){
+      const btn = e.target.closest('.review-btn');
+      if (!btn) return;
+      const gid = btn.getAttribute('data-id');
+      const gtitle = btn.getAttribute('data-title') || '';
+      const gstatus = btn.getAttribute('data-status') || 'Open';
+      if (gidInput) gidInput.value = gid;
+      if (titleEl) titleEl.textContent = gtitle;
+      if (statusSel) statusSel.value = ['Open','Resolved','In Progress'].includes(gstatus) ? gstatus : 'Open';
+      if (textArea) textArea.value = '';
+      if (ratingInput) ratingInput.value = '';
+      modal && modal.show();
+    });
+
+    // submit form via FormData
+    form?.addEventListener('submit', async function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      if (!textArea.value.trim()) {
+        textArea.classList.add('is-invalid');
+        return;
+      } else {
+        textArea.classList.remove('is-invalid');
+      }
+      submitBtn.disabled = true;
+      try {
+        const fd = new FormData(form);
+        const res = await fetch('/department/grievance/review', { method: 'POST', body: fd });
+        const data = await res.json().catch(()=>({success:false,error:'Invalid response'}));
+        if (!res.ok || !data.success) throw new Error(data.error || 'Failed to save review');
+        // Update status badge in the table row
+        const gid = gidInput.value;
+        const row = document.querySelector(`#dept-grievances-table tbody tr td:first-child:nth-child(1)`) // placeholder
+        // Safer: find row by button data-id
+        const btn = document.querySelector(`.review-btn[data-id="${CSS.escape(gid)}"]`);
+        const tr = btn ? btn.closest('tr') : null;
+        const newStatus = statusSel.value;
+        if (tr && newStatus) {
+          const statusCell = tr.querySelector('td:nth-child(4)');
+          if (statusCell) {
+            let badgeClass = 'badge bg-secondary';
+            if (newStatus === 'Open') badgeClass = 'badge bg-warning text-dark';
+            if (newStatus === 'Resolved') badgeClass = 'badge bg-success';
+            statusCell.innerHTML = `<span class="${badgeClass}">${newStatus}</span>`;
+          }
+          // Update data-status on button for consistency
+          if (btn) btn.setAttribute('data-status', newStatus);
+        }
+        // In-modal Thank You message
+        const msg = document.getElementById('dept_review_message');
+        if (msg) {
+          msg.className = 'alert alert-success';
+          msg.textContent = 'Thank you! Your review has been submitted.';
+        }
+        // Global success alert
+        let message = 'Review saved successfully.';
+        let alertClass = 'alert alert-success';
+        if (statusSel?.value === 'Resolved') {
+          if (data.email_sent) {
+            message = 'Grievance marked as Resolved. Email sent to the user successfully.';
+            alertClass = 'alert alert-success';
+          } else {
+            const reason = data.email_error ? ` (${data.email_error})` : '';
+            message = 'Grievance marked as Resolved, but email could not be sent to the user' + reason + '.';
+            alertClass = 'alert alert-danger';
+          }
+        }
+        const alert = document.createElement('div');
+        alert.className = alertClass + ' alert-dismissible fade show position-fixed top-0 end-0 m-3';
+        alert.role = 'alert';
+        alert.innerHTML = message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+        document.body.appendChild(alert);
+        setTimeout(()=>alert.remove(), 4000);
+        // Close modal after short pause so user sees Thank You
+        setTimeout(()=>{ modal && modal.hide(); }, 1200);
+      } catch (err) {
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-danger alert-dismissible fade show position-fixed top-0 end-0 m-3';
+        alert.role = 'alert';
+        alert.innerHTML = (err?.message || 'Failed to save review') + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+        document.body.appendChild(alert);
+        setTimeout(()=>alert.remove(), 5000);
+      } finally {
+        submitBtn.disabled = false;
+      }
+      return false;
+    });
+  })();
+</script>
+{% endblock %}

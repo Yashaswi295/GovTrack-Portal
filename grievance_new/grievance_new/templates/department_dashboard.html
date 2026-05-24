@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% block head %}
+<style>
+  .dash-hero { background: linear-gradient(180deg,#f8fafc, #fff); min-height: calc(100vh - 120px); }
+  .card-hover { transition: .25s; }
+  .card-hover:hover { transform: translateY(-4px); box-shadow: 0 .75rem 1.5rem rgba(0,0,0,.08); }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="dash-hero py-4 py-md-5">
+  <div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
+      <div class="d-flex align-items-center gap-3">
+        {% if department and department.logo_path %}
+          <img src="{{ url_for('static', filename=department.logo_path) }}" class="rounded" style="width:48px;height:48px;object-fit:cover;" alt="logo">
+        {% else %}
+          <div class="rounded-circle bg-success-subtle d-inline-flex align-items-center justify-content-center" style="width:48px;height:48px;">
+            <i class="bi bi-building text-success"></i>
+          </div>
+        {% endif %}
+        <div>
+          <h2 class="fw-bold mb-1">{{ department.name if department else 'Department' }} Dashboard</h2>
+          <div class="text-muted small">{{ department.email or '—' }} · {{ department.phone or '—' }}</div>
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{{ url_for('department_profile') }}" class="btn btn-outline-secondary"><i class="bi bi-person-gear me-1"></i> Profile</a>
+        <a href="{{ url_for('department_grievances') }}" class="btn btn-outline-secondary"><i class="bi bi-list-check me-1"></i> Grievances</a>
+        <a href="{{ url_for('department_dashboard') }}" class="btn btn-outline-primary"><i class="bi bi-arrow-clockwise me-1"></i> Refresh</a>
+        <a href="{{ url_for('department_logout') }}" class="btn btn-outline-danger"><i class="bi bi-box-arrow-right me-1"></i> Logout</a>
+      </div>
+    </div>
+
+    <div class="row g-3 g-md-4">
+      <div class="col-12 col-lg-8">
+        <div class="card h-100 card-hover">
+          <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <h5 class="mb-0">Recent Grievances</h5>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle">
+                <thead>
+                  <tr>
+                    <th scope="col">Id</th>
+                    <th scope="col">Title</th>
+                    <th scope="col">Category</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">User Ref</th>
+                    <th scope="col">Created</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% if grievances and grievances|length > 0 %}
+                    {% for g in grievances %}
+                      <tr>
+                        <td>{{ g.id }}</td>
+                        <td class="fw-semibold">{{ g.title }}</td>
+                        <td><span class="badge bg-light text-dark">{{ g.category }}</span></td>
+                        <td>
+                          {% if g.status == 'Open' %}
+                            <span class="badge bg-warning text-dark">Open</span>
+                          {% elif g.status == 'Resolved' %}
+                            <span class="badge bg-success">Resolved</span>
+                          {% else %}
+                            <span class="badge bg-secondary">{{ g.status }}</span>
+                          {% endif %}
+                        </td>
+                        <td class="small text-muted">{{ g.user_ref }}</td>
+                        <td class="small text-muted">{{ g.created_at }}</td>
+                      </tr>
+                    {% endfor %}
+                  {% else %}
+                    <tr><td colspan="6" class="text-center text-muted">No grievances to show.</td></tr>
+                  {% endif %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-lg-4">
+        <div class="card h-100 card-hover">
+          <div class="card-body">
+            <h5 class="mb-3">Department Info</h5>
+            {% if department %}
+              <div class="small text-muted">Name</div>
+              <div class="fw-semibold mb-2">{{ department.name }}</div>
+              <div class="small text-muted">Email</div>
+              <div class="fw-semibold mb-2">{{ department.email or '—' }}</div>
+              <div class="small text-muted">Phone</div>
+              <div class="fw-semibold mb-2">{{ department.phone or '—' }}</div>
+              <div class="small text-muted">Created</div>
+              <div class="fw-semibold">{{ department.created_at }}</div>
+            {% else %}
+              <div class="text-muted">No department details.</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+{% endblock %}

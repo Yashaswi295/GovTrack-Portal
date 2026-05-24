@@ -1,0 +1,1146 @@
+{% extends 'user/base.html' %}
+{% block extra_css %}
+<style>
+  .dashboard-page {
+    padding: 40px 0 80px;
+    min-height: calc(100vh - 200px);
+  }
+
+  /* Welcome Header */
+  .dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .welcome-text h1 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #fff 0%, var(--primary-light) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .welcome-text p {
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    margin: 0;
+  }
+
+  .btn-logout {
+    padding: 10px 24px;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+  }
+
+  .btn-logout:hover {
+    background: rgba(239, 68, 68, 0.2);
+    transform: translateY(-2px);
+    color: #fee2e2;
+  }
+
+  /* Stats Grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+
+  @media (max-width: 1200px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 576px) {
+    .stats-grid { grid-template-columns: 1fr; }
+    .dashboard-header h1 { font-size: 1.5rem; }
+  }
+
+  .stat-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--card-accent);
+    opacity: 0.8;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(255,255,255,0.15);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  }
+
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    margin-bottom: 16px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--card-accent);
+  }
+
+  .stat-label {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1;
+  }
+
+  /* Accent Colors for Stats */
+  .stat-total { --card-accent: #6366f1; }
+  .stat-open { --card-accent: #f59e0b; }
+  .stat-resolved { --card-accent: #10b981; }
+  .stat-messages { --card-accent: #06b6d4; }
+
+  /* Content Grid */
+  .content-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+
+  @media (max-width: 991px) {
+    .content-grid { grid-template-columns: 1fr; }
+  }
+
+  /* Glass Cards */
+  .glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    overflow: hidden;
+    transition: all 0.3s;
+  }
+
+  .glass-card:hover {
+    border-color: rgba(255,255,255,0.12);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  }
+
+  .card-header-custom {
+    padding: 24px 28px;
+    border-bottom: 1px solid var(--glass-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .card-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text-main);
+  }
+
+  .card-body-custom {
+    padding: 28px;
+  }
+
+  /* Quick Actions */
+  .action-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn-action-primary {
+    padding: 14px 28px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s;
+    text-decoration: none;
+    box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.3);
+  }
+
+  .btn-action-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 30px -5px rgba(79, 70, 229, 0.5);
+    color: white;
+  }
+
+  .btn-action-secondary {
+    padding: 14px 28px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    color: var(--text-main);
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s;
+    text-decoration: none;
+  }
+
+  .btn-action-secondary:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.2);
+    transform: translateY(-2px);
+    color: var(--text-main);
+  }
+
+  /* Profile Card */
+  .profile-item {
+    margin-bottom: 20px;
+  }
+
+  .profile-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .profile-label {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+
+  .profile-value {
+    color: var(--text-main);
+    font-weight: 600;
+    font-size: 1.05rem;
+  }
+
+  /* Table Styling */
+  .table-container {
+    overflow-x: auto;
+  }
+
+  .table-premium {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .table-premium th {
+    background: rgba(15, 23, 42, 0.6);
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--glass-border);
+  }
+
+  .table-premium td {
+    padding: 20px 16px;
+    border-bottom: 1px solid var(--glass-border);
+    color: var(--text-main);
+    vertical-align: middle;
+  }
+
+  .table-premium tr:hover td {
+    background: rgba(255,255,255,0.03);
+  }
+
+  .table-premium tr:last-child td {
+    border-bottom: none;
+  }
+
+  .grievance-id {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 700;
+    color: var(--primary-light);
+  }
+
+  .grievance-title {
+    font-weight: 600;
+    color: var(--text-main);
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Badges */
+  .badge-premium {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: 1px solid;
+  }
+
+  .badge-open {
+    background: rgba(245, 158, 11, 0.1);
+    color: #fbbf24;
+    border-color: rgba(245, 158, 11, 0.3);
+  }
+
+  .badge-resolved {
+    background: rgba(16, 185, 129, 0.1);
+    color: #34d399;
+    border-color: rgba(16, 185, 129, 0.3);
+  }
+
+  .badge-default {
+    background: rgba(148, 163, 184, 0.1);
+    color: var(--text-muted);
+    border-color: rgba(148, 163, 184, 0.2);
+  }
+
+  .badge-category {
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--primary-light);
+    border-color: rgba(99, 102, 241, 0.2);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+  }
+
+  .empty-state-icon {
+    font-size: 3rem;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+
+  /* Modal Premium */
+  .modal-content-premium {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8);
+    overflow: hidden;
+  }
+
+  .modal-header-premium {
+    background: rgba(15, 23, 42, 0.6);
+    border-bottom: 1px solid var(--glass-border);
+    padding: 24px 32px;
+  }
+
+  .modal-title-premium {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+
+  .btn-close-custom {
+    background: rgba(255,255,255,0.1);
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    transition: all 0.3s;
+  }
+
+  .btn-close-custom:hover {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+  }
+
+  .modal-body-premium {
+    padding: 32px;
+  }
+
+  .form-group-premium {
+    margin-bottom: 24px;
+  }
+
+  .form-label-premium {
+    display: block;
+    margin-bottom: 10px;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .form-control-premium {
+    width: 100%;
+    padding: 14px 18px;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    color: var(--text-main);
+    font-size: 0.95rem;
+    transition: all 0.3s;
+  }
+
+  .form-control-premium:focus {
+    outline: none;
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    background: rgba(15, 23, 42, 0.8);
+  }
+
+  textarea.form-control-premium {
+    resize: vertical;
+    min-height: 120px;
+  }
+
+  .form-text-premium {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-top: 8px;
+    display: block;
+  }
+
+  .modal-footer-premium {
+    border-top: 1px solid var(--glass-border);
+    padding: 24px 32px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+  }
+
+  /* Flash Messages */
+  .alert-premium-dashboard {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+    padding: 16px 20px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    animation: slideDown 0.3s ease;
+  }
+
+  .alert-premium-dashboard.success {
+    background: rgba(34, 197, 94, 0.1);
+    border-color: rgba(34, 197, 94, 0.2);
+    color: #86efac;
+  }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .btn-close-alert {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.3s;
+  }
+
+  .btn-close-alert:hover {
+    opacity: 1;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="dashboard-page">
+  <div class="container">
+    
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert-premium-dashboard {{ 'success' if category == 'success' }}" role="alert">
+          <span><i class="fas {{ 'fa-check-circle' if category == 'success' else 'fa-exclamation-circle' }} me-2"></i>{{ message }}</span>
+          <button type="button" class="btn-close-alert" onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <!-- Header -->
+    <div class="dashboard-header" data-aos="fade-down">
+      <div class="welcome-text">
+        <h1>Hello, {{ user_name or 'User' }} 👋</h1>
+        <p>Welcome back to your GovTrack dashboard</p>
+      </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid" data-aos="fade-up" data-aos-delay="100">
+      <div class="stat-card stat-total">
+        <div class="stat-icon">
+          <i class="fas fa-clipboard-check"></i>
+        </div>
+        <div class="stat-label">Total Grievances</div>
+        <div class="stat-value">{{ grievances|length if grievances else '0' }}</div>
+      </div>
+
+      <div class="stat-card stat-open">
+        <div class="stat-icon">
+          <i class="fas fa-hourglass-half"></i>
+        </div>
+        <div class="stat-label">Open Cases</div>
+        <div class="stat-value">{{ grievances|selectattr('status', 'equalto', 'Open')|list|length if grievances else '0' }}</div>
+      </div>
+
+      <div class="stat-card stat-resolved">
+        <div class="stat-icon">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-label">Resolved</div>
+        <div class="stat-value">{{ grievances|selectattr('status', 'equalto', 'Resolved')|list|length if grievances else '0' }}</div>
+      </div>
+
+      <div class="stat-card stat-messages">
+        <div class="stat-icon">
+          <i class="fas fa-envelope"></i>
+        </div>
+        <div class="stat-label">Messages</div>
+        <div class="stat-value">—</div>
+      </div>
+    </div>
+
+    <!-- Content Grid -->
+    <div class="content-grid">
+      <!-- Quick Actions -->
+      <div class="glass-card" data-aos="fade-right" data-aos-delay="200">
+        <div class="card-header-custom">
+          <h3 class="card-title">Quick Actions</h3>
+        </div>
+        <div class="card-body-custom">
+          <div class="action-buttons">
+            <button class="btn-action-primary" data-bs-toggle="modal" data-bs-target="#newGrievanceModal">
+              <i class="fas fa-plus-circle"></i>
+              <span>New Grievance</span>
+            </button>
+            <a href="/user/history" class="btn-action-secondary">
+              <i class="fas fa-list"></i>
+              <span>View All</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Card -->
+      <div class="glass-card" data-aos="fade-left" data-aos-delay="300">
+        <div class="card-header-custom">
+          <h3 class="card-title">Profile Info</h3>
+          <i class="fas fa-user-circle text-primary"></i>
+        </div>
+        <div class="card-body-custom">
+          <div class="profile-item">
+            <div class="profile-label">Full Name</div>
+            <div class="profile-value">{{ user_name or '—' }}</div>
+          </div>
+          <div class="profile-item">
+            <div class="profile-label">Email Address</div>
+            <div class="profile-value">{{ session.get('user_email') or '—' }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Grievances -->
+    <div class="glass-card" id="grievances-list" data-aos="fade-up" data-aos-delay="400">
+      <div class="card-header-custom">
+        <h3 class="card-title">Recent Grievances</h3>
+        <span class="badge-premium badge-default">{{ grievances|length if grievances else '0' }} Total</span>
+      </div>
+      <div class="card-body-custom" style="padding: 0;">
+        {% if grievances and grievances|length > 0 %}
+          <div class="table-container">
+            <table class="table-premium">
+              <thead>
+                <tr>
+                  <th style="width: 80px;">ID</th>
+                  <th>Title</th>
+                  <th>Category</th>
+                  <th style="width: 120px;">Status</th>
+                  <th style="width: 150px;">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for g in grievances %}
+                <tr>
+                  <td>
+                    <span class="grievance-id">#{{ g.id }}</span>
+                  </td>
+                  <td>
+                    <div class="grievance-title" title="{{ g.title }}">{{ g.title }}</div>
+                  </td>
+                  <td>
+                    <span class="badge-premium badge-category">{{ g.category }}</span>
+                  </td>
+                  <td>
+                    {% if g.status == 'Open' %}
+                      <span class="badge-premium badge-open">Open</span>
+                    {% elif g.status == 'Resolved' %}
+                      <span class="badge-premium badge-resolved">Resolved</span>
+                    {% else %}
+                      <span class="badge-premium badge-default">{{ g.status }}</span>
+                    {% endif %}
+                  </td>
+                  <td style="color: var(--text-muted); font-size: 0.9rem;">
+                    {{ g.created_at }}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="empty-state">
+            <div class="empty-state-icon">
+              <i class="fas fa-inbox"></i>
+            </div>
+            <h4 style="margin-bottom: 8px; color: var(--text-main);">No Grievances Yet</h4>
+            <p style="margin: 0; max-width: 400px; margin: 0 auto;">
+              You haven't submitted any grievances. Click "New Grievance" to get started.
+            </p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- New Grievance Modal -->
+<div class="modal fade" id="newGrievanceModal" tabindex="-1" aria-labelledby="newGrievanceLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content modal-content-premium">
+      <div class="modal-header modal-header-premium">
+        <h5 class="modal-title modal-title-premium" id="newGrievanceLabel">
+          <i class="fas fa-plus-circle text-primary me-2"></i>Submit New Grievance
+        </h5>
+        <button type="button" class="btn-close-custom" data-bs-dismiss="modal" aria-label="Close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <form method="POST" action="{{ url_for('create_grievance') }}" enctype="multipart/form-data">
+        <div class="modal-body modal-body-premium">
+          
+          <div class="form-group-premium">
+            <label class="form-label-premium">Grievance Title</label>
+            <input type="text" name="title" class="form-control-premium" placeholder="Enter a brief subject" required>
+            <span class="form-text-premium">Provide a clear, concise title for your complaint</span>
+          </div>
+
+          <div class="form-group-premium">
+            <label class="form-label-premium">Category</label>
+            <select name="category" class="form-control-premium" required>
+              <option value="">Select a category</option>
+              <option value="Public Issue">Public Issue</option>
+              <option value="Maintenance">Maintenance</option>
+              <option value="Road Issue">Road Issue</option>
+              <option value="Water Problem">Water Problem</option>
+              <option value="Electricity">Electricity</option>
+              <option value="Other">Other</option>
+            </select>
+            <span class="form-text-premium">Select the category that best matches your complaint</span>
+          </div>
+
+          <div class="form-group-premium">
+            <label class="form-label-premium">Description</label>
+            <textarea name="description" id="description" class="form-control-premium" rows="4" placeholder="Describe your issue in detail..." required></textarea>
+            <span class="form-text-premium">Include relevant details such as dates, locations, and parties involved</span>
+          </div>
+
+          <div class="form-group-premium">
+            <label class="form-label-premium">Department</label>
+            <select name="department_id" id="grievance-department" class="form-control-premium" required>
+              <option value="">Select a department</option>
+            </select>
+            <div id="departmentResult" class="form-text-premium" style="min-height: 1.25rem;">Department will be suggested from your description</div>
+          </div>
+
+
+          <div class="form-group-premium">
+              <label class="form-label-premium">Address</label>
+
+              <input type="text" name="address" id="address" class="form-control-premium"
+                     placeholder="Enter your address (or use location)">
+
+              <!-- Hidden fields (backend ke liye same rahenge) -->
+              <input type="hidden" name="latitude" id="latitude">
+              <input type="hidden" name="longitude" id="longitude">
+
+              <!-- Buttons -->
+              <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top: 10px;">
+                <button type="button" class="btn-glass-outline" style="padding: 10px 16px;" onclick="getLocation()">
+                  <i class="fas fa-location-crosshairs"></i>
+                  <span>Use My Location</span>
+                </button>
+
+                <button type="button" class="btn-glass-outline" style="padding: 10px 16px;" onclick="toggleManualLocation()">
+                  <i class="fas fa-pen"></i>
+                  <span>Enter Manually</span>
+                </button>
+              </div>
+
+              <!-- Manual Input (Initially Hidden) -->
+              <div id="manual-location-box" style="display:none; margin-top: 12px;">
+                <div style="display:flex; gap:10px;">
+                  <input type="text" id="manual-lat" class="form-control-premium"
+                         placeholder="Latitude (e.g. 21.1458)">
+                  <input type="text" id="manual-lng" class="form-control-premium"
+                         placeholder="Longitude (e.g. 79.0882)">
+                </div>
+
+                <button type="button" class="btn-glass-outline"
+                        style="margin-top:10px; padding: 10px 16px;"
+                        onclick="setManualLocation()">
+                  <i class="fas fa-map-pin"></i>
+                  <span>Set Manual Location</span>
+                </button>
+              </div>
+
+              <span class="form-text-premium">
+                You can either use GPS or manually enter latitude & longitude
+              </span>
+          </div>
+          <div id="map" style="height: 250px; margin-top:15px; border-radius: 12px; overflow:hidden;"></div>
+
+          <div class="form-group-premium" style="margin-bottom: 0;">
+            <label class="form-label-premium">Supporting Image (Optional)</label>
+            <input type="file" id="grievance-image" name="image" class="form-control-premium" accept="image/png, image/jpeg, image/jpg, image/gif, image/webp">
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top: 10px;">
+              <button type="button" id="take-photo-btn" class="btn-glass-outline" style="padding: 10px 16px;">
+                <i class="fas fa-camera"></i>
+                <span>Take Photo</span>
+              </button>
+              <button type="button" id="stop-camera-btn" class="btn-glass-outline" style="padding: 10px 16px; display:none;">
+                <i class="fas fa-stop"></i>
+                <span>Stop Camera</span>
+              </button>
+              <button type="button" id="capture-photo-btn" class="btn-glass-outline" style="padding: 10px 16px; display:none;">
+                <i class="fas fa-circle"></i>
+                <span>Capture</span>
+              </button>
+            </div>
+            <div id="camera-box" style="display:none; margin-top: 10px; border-radius: 14px; overflow:hidden; border: 1px solid rgba(255,255,255,0.12); background: rgba(0,0,0,0.25);">
+              <video id="camera-video" playsinline autoplay style="width:100%; max-height: 280px; object-fit: cover; display:block;"></video>
+              <canvas id="camera-canvas" style="display:none;"></canvas>
+              <img id="captured-preview" alt="Captured photo" style="width:100%; max-height: 280px; object-fit: cover; display:none;" />
+            </div>
+            <span class="form-text-premium">Attach photos or screenshots as evidence (Max 10MB)</span>
+          </div>
+
+        </div>
+        <div class="modal-footer modal-footer-premium">
+          <button type="button" class="btn-action-secondary" data-bs-dismiss="modal" style="padding: 10px 24px;">
+            Cancel
+          </button>
+          <button type="submit" class="btn-action-primary" style="border: none;">
+            <i class="fas fa-paper-plane"></i>
+            <span>Submit Grievance</span>
+          </button>
+            <div style="background-color:#fff3cd; color:#856404; padding:15px; border-radius:8px; margin-top:15px; border:1px solid #ffeeba;">
+                <strong>Disclaimer:</strong> This portal is created for academic and project demonstration purposes only.
+                It is not an official government website and has no connection with any government department.
+                Complaints submitted through this platform will not be officially reviewed or acted upon.
+            </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+
+    // Show/Hide manual input
+function toggleManualLocation() {
+  const box = document.getElementById('manual-location-box');
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+}
+
+// ================= MAP VARIABLES =================
+let map;
+let marker;
+
+// ================= INIT MAP =================
+function initMap(lat = 20.5937, lng = 78.9629) {
+  if (map) return;
+
+  map = L.map('map').setView([lat, lng], 5);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  marker = L.marker([lat, lng]).addTo(map);
+
+  // click on map
+  map.on('click', function (e) {
+    updateLocation(e.latlng.lat, e.latlng.lng);
+  });
+}
+
+// ================= UPDATE LOCATION =================
+function updateLocation(lat, lng) {
+  if (!marker) return;
+
+  marker.setLatLng([lat, lng]);
+  map.setView([lat, lng], 15);
+
+  const latEl = document.getElementById('latitude');
+  const lonEl = document.getElementById('longitude');
+  const addrEl = document.getElementById('address');
+
+  if (latEl) latEl.value = lat;
+  if (lonEl) lonEl.value = lng;
+
+  if (addrEl) addrEl.value = 'Fetching address...';
+
+  fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+    .then(res => res.json())
+    .then(data => {
+      if (addrEl) addrEl.value = data.display_name || `${lat}, ${lng}`;
+    })
+    .catch(() => {
+      if (addrEl) addrEl.value = `${lat}, ${lng}`;
+    });
+}
+
+// Set manual coordinates
+function setManualLocation() {
+  const lat = document.getElementById('manual-lat').value.trim();
+  const lng = document.getElementById('manual-lng').value.trim();
+
+  if (!lat || !lng) {
+    alert("Please enter both latitude and longitude");
+    return;
+  }
+
+  // Basic validation
+  if (isNaN(lat) || isNaN(lng)) {
+    alert("Invalid coordinates. Please enter numeric values.");
+    return;
+  }
+
+  // Set hidden fields (backend already uses these)
+  updateLocation(parseFloat(lat), parseFloat(lng));
+
+  alert("Manual location set successfully!");
+}
+
+  // Initialize AOS animations
+  AOS.init({
+    duration: 800,
+    once: true,
+    offset: 50
+  });
+
+  // Department fetch functionality (preserved from original)
+  (function() {
+    let departmentsCache = null;
+    const modalEl = document.getElementById('newGrievanceModal');
+    if (!modalEl) return;
+
+    modalEl.addEventListener('shown.bs.modal', async function() {
+      const deptSel = document.getElementById('grievance-department');
+      if (!deptSel) return;
+
+      if (!departmentsCache) {
+        try {
+          const res = await fetch("{{ url_for('api_departments') }}");
+          const data = await res.json();
+          departmentsCache = (data && data.items) || [];
+        } catch (e) {
+          departmentsCache = [];
+        }
+      }
+
+      // Populate departments
+      if (deptSel.options.length <= 1) {
+        departmentsCache.forEach(d => {
+          const opt = document.createElement('option');
+          opt.value = d.id;
+          opt.textContent = d.name;
+          deptSel.appendChild(opt);
+        });
+      }
+    });
+  })();
+
+  (function() {
+    const modalEl = document.getElementById('newGrievanceModal');
+    if (!modalEl) return;
+
+    const fileInput = document.getElementById('grievance-image');
+    const takeBtn = document.getElementById('take-photo-btn');
+    const stopBtn = document.getElementById('stop-camera-btn');
+    const captureBtn = document.getElementById('capture-photo-btn');
+    const box = document.getElementById('camera-box');
+    const video = document.getElementById('camera-video');
+    const canvas = document.getElementById('camera-canvas');
+    const preview = document.getElementById('captured-preview');
+    if (!fileInput || !takeBtn || !stopBtn || !captureBtn || !box || !video || !canvas || !preview) return;
+
+    let stream = null;
+
+    const setControls = (state) => {
+      if (state === 'off') {
+        stopBtn.style.display = 'none';
+        captureBtn.style.display = 'none';
+        box.style.display = 'none';
+        video.style.display = 'block';
+        preview.style.display = 'none';
+        preview.src = '';
+      } else if (state === 'on') {
+        stopBtn.style.display = 'inline-flex';
+        captureBtn.style.display = 'inline-flex';
+        box.style.display = 'block';
+        video.style.display = 'block';
+        preview.style.display = 'none';
+        preview.src = '';
+      } else if (state === 'captured') {
+        stopBtn.style.display = 'inline-flex';
+        captureBtn.style.display = 'inline-flex';
+        box.style.display = 'block';
+        video.style.display = 'none';
+        preview.style.display = 'block';
+      }
+    };
+
+    const stopCamera = () => {
+      try {
+        if (stream) {
+          stream.getTracks().forEach(t => {
+            try { t.stop(); } catch (e) {}
+          });
+        }
+      } finally {
+        stream = null;
+        try { video.srcObject = null; } catch (e) {}
+        setControls('off');
+      }
+    };
+
+    const startCamera = async () => {
+      if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) {
+        alert('Camera is not supported by this browser.');
+        return;
+      }
+      try {
+        stopCamera();
+        setControls('on');
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+        video.srcObject = stream;
+        await video.play();
+      } catch (e) {
+        stopCamera();
+        alert('Unable to access camera. Please allow camera permission.');
+      }
+    };
+
+    const capturePhoto = async () => {
+      if (!stream) return;
+      const w = video.videoWidth || 1280;
+      const h = video.videoHeight || 720;
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, w, h);
+
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.92));
+      if (!blob) {
+        alert('Could not capture photo.');
+        return;
+      }
+
+      const file = new File([blob], 'camera-photo.jpg', { type: 'image/jpeg' });
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      fileInput.files = dt.files;
+      preview.src = URL.createObjectURL(blob);
+      setControls('captured');
+    };
+
+    takeBtn.addEventListener('click', startCamera);
+    stopBtn.addEventListener('click', stopCamera);
+    captureBtn.addEventListener('click', capturePhoto);
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files && fileInput.files.length) {
+        stopCamera();
+      }
+    });
+
+    modalEl.addEventListener('hidden.bs.modal', () => {
+      stopCamera();
+    });
+  })();
+
+  (function() {
+    const modalEl = document.getElementById('newGrievanceModal');
+    if (!modalEl) return;
+
+    const descEl = document.getElementById('description');
+    const deptSel = document.getElementById('grievance-department');
+    const resultBox = document.getElementById('departmentResult');
+    if (!descEl || !deptSel || !resultBox) return;
+
+    let timer = null;
+    let lastQuery = '';
+
+    const setMessage = (text, tone) => {
+      resultBox.textContent = text;
+      resultBox.style.color = tone === 'error' ? '#fca5a5' : (tone === 'ok' ? '#a5b4fc' : '');
+    };
+
+    const applyDept = (id, name) => {
+      const strId = String(id);
+      let opt = Array.from(deptSel.options).find(o => String(o.value) === strId);
+      if (!opt) {
+        opt = document.createElement('option');
+        opt.value = strId;
+        opt.textContent = name || ('Department #' + strId);
+        deptSel.appendChild(opt);
+      }
+      deptSel.value = strId;
+    };
+
+    const predict = async () => {
+      const description = (descEl.value || '').trim();
+      if (!description) {
+        setMessage('Department will be suggested from your description', '');
+        return;
+      }
+      if (description.length < 10) {
+        setMessage('Type a few more details to auto-suggest department', '');
+        return;
+      }
+
+      if (description === lastQuery) return;
+      lastQuery = description;
+
+      setMessage('Suggesting department...', '');
+
+      try {
+        const titleEl = modalEl.querySelector('input[name="title"]');
+        const categoryEl = modalEl.querySelector('select[name="category"]');
+
+        const res = await fetch('/predict-department', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: (titleEl && titleEl.value) || '',
+            category: (categoryEl && categoryEl.value) || '',
+            description
+          })
+        });
+
+        const data = await res.json();
+        if (!data || !data.success || !data.department) {
+          throw new Error((data && data.error) || 'Unable to detect department');
+        }
+
+        applyDept(data.department.id, data.department.name);
+        setMessage('Suggested: ' + data.department.name, 'ok');
+      } catch (e) {
+        setMessage('Could not auto-suggest department. Please select manually.', 'error');
+      }
+    };
+
+    descEl.addEventListener('input', () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(predict, 600);
+    });
+
+    modalEl.addEventListener('shown.bs.modal', () => {
+    setTimeout(() => {
+      initMap();
+      if (map) map.invalidateSize();
+    }, 300);
+      lastQuery = '';
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(predict, 250);
+    });
+  })();
+
+  window.getLocation = function() {
+    try {
+      if (!navigator.geolocation) {
+        alert('Geolocation is not supported by this browser.');
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+  (pos) => updateLocation(pos.coords.latitude, pos.coords.longitude),
+  showError
+);
+    } catch (e) {
+      alert('Unable to access location.');
+    }
+  };
+
+
+
+  function showError() {
+    alert('Please allow location permissions.');
+  }
+
+  // Auto-close alerts after 5 seconds
+  setTimeout(() => {
+    const alerts = document.querySelectorAll('.alert-premium-dashboard');
+    alerts.forEach(alert => {
+      alert.style.opacity = '0';
+      alert.style.transform = 'translateY(-10px)';
+      alert.style.transition = 'all 0.3s';
+      setTimeout(() => alert.remove(), 300);
+    });
+  }, 5000);
+</script>
+{% endblock %}

@@ -1,0 +1,263 @@
+{% extends 'user/base.html' %}
+
+{% block page_title %}My Grievances{% endblock %}
+
+{% block extra_css %}
+<style>
+  .history-page {
+    padding: 8px 0 24px;
+  }
+
+  .history-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+
+  .history-header h2 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--text-main) !important;
+  }
+
+  .history-header p {
+    margin: 6px 0 0;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+
+  .history-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .chip {
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+
+  .glass-card {
+    background: rgba(30, 41, 59, 0.5) !important;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  }
+
+  .card-header-custom {
+    padding: 18px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255,255,255,0.02) !important;
+  }
+
+  .card-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #f8fafc !important;
+    margin: 0;
+  }
+
+  .table-container {
+    overflow-x: auto;
+  }
+
+  .table-dark-custom {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .table-dark-custom th {
+    background: rgba(15, 23, 42, 0.8) !important;
+    color: #64748b !important;
+    font-weight: 800;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    white-space: nowrap;
+  }
+
+  .table-dark-custom td {
+    padding: 16px 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: #f8fafc !important;
+    vertical-align: middle;
+  }
+
+  .table-dark-custom tr:hover td {
+    background: rgba(99, 102, 241, 0.05) !important;
+  }
+
+  .grievance-id {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 800;
+    color: #a5b4fc !important;
+  }
+
+  .title-cell {
+    font-weight: 700;
+    max-width: 320px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 576px) {
+    .title-cell { max-width: 180px; }
+  }
+
+  .badge-custom {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+
+  .badge-open {
+    background: rgba(245, 158, 11, 0.1) !important;
+    color: #fbbf24 !important;
+    border-color: rgba(245, 158, 11, 0.3);
+  }
+
+  .badge-resolved {
+    background: rgba(16, 185, 129, 0.1) !important;
+    color: #34d399 !important;
+    border-color: rgba(16, 185, 129, 0.3);
+  }
+
+  .badge-default {
+    background: rgba(148, 163, 184, 0.1) !important;
+    color: #94a3b8 !important;
+    border-color: rgba(148, 163, 184, 0.2);
+  }
+
+  .badge-category {
+    background: rgba(99, 102, 241, 0.1) !important;
+    color: #a5b4fc !important;
+    border-color: rgba(99, 102, 241, 0.3);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 56px 18px;
+    color: var(--text-muted);
+  }
+
+  .empty-icon {
+    font-size: 2.75rem;
+    opacity: 0.55;
+    margin-bottom: 14px;
+  }
+
+  .empty-title {
+    margin: 0 0 6px;
+    font-weight: 900;
+    color: var(--text-main) !important;
+  }
+
+  .empty-desc {
+    margin: 0;
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="history-page">
+
+  <div class="history-header">
+    <div>
+      <h2>My Grievances</h2>
+      <p>All your submitted grievances in one place</p>
+    </div>
+    <div class="history-actions">
+      <span class="chip"><i class="fas fa-list me-2"></i>{{ grievances|length if grievances else '0' }} Total</span>
+      <a href="{{ url_for('dashboard') }}" class="btn-glass-outline" style="padding: 10px 16px;">
+        <i class="fas fa-arrow-left"></i>
+        <span>Back</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="glass-card">
+    <div class="card-header-custom">
+      <h3 class="card-title">History</h3>
+      <span class="badge-custom badge-default">Newest First</span>
+    </div>
+
+    {% if grievances and grievances|length > 0 %}
+      <div class="table-container">
+        <table class="table-dark-custom">
+          <thead>
+            <tr>
+              <th style="width: 90px;">ID</th>
+              <th>Title</th>
+              <th>Category</th>
+              <th style="width: 140px;">Status</th>
+              <th style="width: 180px;">Created</th>
+              <th style="width: 120px;">View</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for g in grievances %}
+            <tr>
+              <td><span class="grievance-id">#{{ g.id }}</span></td>
+              <td>
+                <div class="title-cell" title="{{ g.title }}">{{ g.title }}</div>
+              </td>
+              <td><span class="badge-custom badge-category">{{ g.category }}</span></td>
+              <td>
+                {% if g.status == 'Open' %}
+                  <span class="badge-custom badge-open">Open</span>
+                {% elif g.status == 'Resolved' %}
+                  <span class="badge-custom badge-resolved">Resolved</span>
+                {% else %}
+                  <span class="badge-custom badge-default">{{ g.status }}</span>
+                {% endif %}
+              </td>
+              <td style="color: var(--text-muted) !important; font-size: 0.9rem;">{{ g.created_at }}</td>
+              <td>
+                <a href="{{ url_for('user_grievance_detail', g_id=g.id) }}" class="btn-glass-outline" style="padding: 8px 12px;">
+                  <i class="fas fa-eye"></i>
+                  <span>View</span>
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon"><i class="fas fa-inbox"></i></div>
+        <h4 class="empty-title">No Grievances Found</h4>
+        <p class="empty-desc">You haven't submitted any grievances yet. Go back to dashboard and create your first one.</p>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

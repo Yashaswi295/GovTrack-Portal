@@ -1,0 +1,425 @@
+{% extends 'base.html' %}
+{% block head %}
+<style>
+  .dash-hero { position: relative; overflow: hidden; background:
+    radial-gradient(1000px 520px at 10% 0%, rgba(13,110,253,.18), transparent 60%),
+    radial-gradient(900px 480px at 90% 20%, rgba(32,201,151,.18), transparent 60%),
+    linear-gradient(180deg, #ffffff 0%, #eef4ff 50%, #ffffff 100%);
+    min-height: calc(100vh - 120px);
+  }
+  .card-hover { transition: .25s; }
+  .card-hover:hover { transform: translateY(-4px); box-shadow: 0 .75rem 1.5rem rgba(0,0,0,.08); }
+  .dash-hero::before { content: ""; position: absolute; top: -110px; left: -110px; width: 320px; height: 320px;
+    background: radial-gradient(circle at 30% 30%, rgba(13,110,253,.35), rgba(13,110,253,0) 70%); filter: blur(18px); border-radius: 50%; }
+  .dash-hero::after { content: ""; position: absolute; bottom: -140px; right: -140px; width: 400px; height: 400px;
+    background: radial-gradient(circle at 70% 70%, rgba(32,201,151,.35), rgba(32,201,151,0) 70%); filter: blur(18px); border-radius: 50%; }
+  /* Stat cards */
+  .stat-card { color: #fff; border: 0 !important; position: relative; overflow: hidden; }
+  .stat-card .card-body { position: relative; }
+  .stat-card .icon { font-size: 1.75rem; opacity: .9; }
+  .stat-card.stat-blue { background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%); }
+  .stat-card.stat-green { background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); }
+  .stat-card.stat-cyan { background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); }
+  .stat-card.stat-amber { background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%); }
+  .stat-card::after { content: ""; position: absolute; right: -40px; bottom: -40px; width: 160px; height: 160px; border-radius: 50%; background: rgba(255,255,255,.15); filter: blur(2px); }
+  .stat-card::before { content: ""; position: absolute; left: -30px; top: -30px; width: 110px; height: 110px; border-radius: 50%; background: rgba(255,255,255,.10); }
+  .stat-card .text-muted { color: rgba(255,255,255,.85) !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="dash-hero py-4 py-md-5">
+  <div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
+      <div>
+        <h2 class="fw-bold mb-1">Hello, {{ user_name or 'User' }} 👋</h2>
+        <div class="text-muted">Welcome to your dashboard</div>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="{{ url_for('logout') }}" class="btn btn-outline-secondary"><i class="bi bi-box-arrow-right me-1"></i> Logout</a>
+      </div>
+    </div>
+
+    <div class="row g-3 g-md-4">
+      <div class="col-12 col-md-6 col-xl-3">
+        <div class="card card-hover h-100 stat-card stat-blue">
+          <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <div class="text-muted small">Total Grievances</div>
+                <div class="h3 mb-0">—</div>
+              </div>
+              <div class="icon"><i class="bi bi-clipboard-check"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-6 col-xl-3">
+        <div class="card card-hover h-100 stat-card stat-amber">
+          <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <div class="text-muted small">Open</div>
+                <div class="h3 mb-0">—</div>
+              </div>
+              <div class="icon"><i class="bi bi-hourglass-split"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-6 col-xl-3">
+        <div class="card card-hover h-100 stat-card stat-green">
+          <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <div class="text-muted small">Resolved</div>
+                <div class="h3 mb-0">—</div>
+              </div>
+              <div class="icon"><i class="bi bi-check2-circle"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-6 col-xl-3">
+        <div class="card card-hover h-100 stat-card stat-cyan">
+          <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <div class="text-muted small">Messages</div>
+                <div class="h3 mb-0">—</div>
+              </div>
+              <div class="icon"><i class="bi bi-envelope"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 g-md-4 mt-1 mt-md-2">
+      <div class="col-12 col-lg-8">
+        <div class="card h-100 card-hover">
+          <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <h5 class="mb-0">Quick Actions</h5>
+            </div>
+            <div class="d-grid d-md-flex gap-2">
+              <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newGrievanceModal">
+                <i class="bi bi-file-earmark-plus me-1"></i> New Grievance
+              </button>
+              <a href="#grievances" class="btn btn-outline-primary"><i class="bi bi-list-task me-1"></i> View My Grievances</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-lg-4">
+        <div class="card h-100 card-hover">
+          <div class="card-body">
+            <h5 class="mb-3">Profile</h5>
+            <div class="small text-muted">Name</div>
+            <div class="fw-semibold mb-2">{{ user_name or '—' }}</div>
+            <div class="small text-muted">Email</div>
+            <div class="fw-semibold">{{ session.get('user_email') or '—' }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 g-md-4 mt-1 mt-md-2" id="grievances">
+      <div class="col-12 col-lg-8">
+        <div class="card h-100 card-hover">
+          <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <h5 class="mb-0">Recent Grievances</h5>
+            </div>
+            {% if grievances and grievances|length > 0 %}
+              <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                  <thead>
+                    <tr>
+                      <th scope="col">#</th>
+                      <th scope="col">Title</th>
+                      <th scope="col">Category</th>
+                      <th scope="col">Status</th>
+                      <th scope="col">Created</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for g in grievances %}
+                    <tr>
+                      <td>{{ g.id }}</td>
+                      <td class="fw-semibold">{{ g.title }}</td>
+                      <td><span class="badge bg-light text-dark">{{ g.category }}</span></td>
+                      <td>
+                        {% if g.status == 'Open' %}
+                          <span class="badge bg-warning text-dark">Open</span>
+                        {% elif g.status == 'Resolved' %}
+                          <span class="badge bg-success">Resolved</span>
+                        {% else %}
+                          <span class="badge bg-secondary">{{ g.status }}</span>
+                        {% endif %}
+                      </td>
+                      <td class="text-muted small">{{ g.created_at }}</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <div class="text-center text-muted py-4">No grievances yet. Create your first one.</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-lg-4">
+        <div class="card h-100 card-hover">
+          <div class="card-body">
+            <h5 class="mb-3">Profile</h5>
+            <div class="small text-muted">Name</div>
+            <div class="fw-semibold mb-2">{{ user_name or '—' }}</div>
+            <div class="small text-muted">Email</div>
+            <div class="fw-semibold">{{ session.get('user_email') or '—' }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- New Grievance Modal -->
+<div class="modal fade" id="newGrievanceModal" tabindex="-1" aria-labelledby="newGrievanceLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="newGrievanceLabel">New Grievance</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <form method="POST" action="{{ url_for('create_grievance') }}" enctype="multipart/form-data">
+        <div class="modal-body">
+
+          <!-- Title -->
+          <div class="mb-3">
+            <label class="form-label">Title</label>
+            <input type="text" name="title" class="form-control" placeholder="Brief subject" required>
+          </div>
+
+          <!-- Category -->
+          <div class="mb-3">
+            <label class="form-label">Category</label>
+            <select name="category" class="form-select" required>
+              <option value="">Select a category</option>
+              <option value="Public Issue">Public Issue</option>
+              <option value="Maintenance">Maintenance</option>
+              <option value="Road Issue">Road Issue</option>
+              <option value="Water Problem">Water Problem</option>
+              <option value="Electricity">Electricity</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <!-- Department (auto-detected) -->
+          <div class="mb-3">
+            <label class="form-label">Department (auto-detected)</label>
+            <div id="departmentResult" class="form-text fw-semibold" style="min-height:1.5rem"></div>
+            <input type="hidden" name="department_id" id="department_id">
+            <!-- Keep dropdown hidden as a fallback (populated from API) -->
+            <select id="grievance-department" class="form-select" style="display:none">
+                <option value="">Select a department</option>
+            </select>
+          </div>
+
+          <!-- Description Field -->
+          <div class="form-group">
+              <label for="description">Description:</label>
+              <textarea id="description" name="description" class="form-control" rows="4"
+                  placeholder="Explain your grievance in detail" required></textarea>
+          </div>
+
+          <!-- Done Button -->
+          <button type="button" id="btnDone" class="btn btn-primary mt-2">
+              Done
+          </button>
+
+          <!-- Department Result Section (message updated by JS) -->
+          
+
+          <!-- Address -->
+          <div class="mt-3">
+            <label class="form-label">Your Address</label>
+            <input type="text" id="address" name="address" class="form-control" placeholder="Fetching address..." required>
+            <input type="hidden" id="latitude" name="latitude">
+            <input type="hidden" id="longitude" name="longitude">
+            <button type="button" class="btn btn-secondary btn-sm mt-2" onclick="getLocation()">
+              Get My Location
+            </button>
+          </div>
+
+          <!-- Image -->
+          <div class="mt-3">
+            <label class="form-label">Image (optional)</label>
+            <input type="file" name="image" class="form-control"
+                   accept="image/png, image/jpeg, image/jpg, image/gif, image/webp">
+          </div>
+
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit Grievance</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- Department auto-detect script -->
+<script>
+(function() {
+  const btn = document.getElementById('btnDone');
+  if (!btn) return;
+  btn.addEventListener('click', async function(e) {
+    e.preventDefault();
+    const descEl = document.getElementById('description');
+    const resultBox = document.getElementById('departmentResult');
+    const hiddenId = document.getElementById('department_id');
+    const dropdown = document.getElementById('grievance-department');
+    const titleEl = document.querySelector('input[name="title"]');
+    const categoryEl = document.querySelector('select[name="category"]');
+
+    const description = (descEl.value || '').trim();
+    if (!description) {
+      resultBox.classList.remove('text-primary','text-danger');
+      resultBox.classList.add('text-danger');
+      resultBox.textContent = 'Please enter a description first.';
+      return;
+    }
+
+    btn.disabled = true;
+    const original = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Analyzing...';
+    resultBox.classList.remove('text-danger');
+    resultBox.classList.add('text-muted');
+    resultBox.textContent = 'Analyzing your grievance...';
+
+    try {
+      const res = await fetch('/predict-department', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: (titleEl && titleEl.value) || '',
+          category: (categoryEl && categoryEl.value) || '',
+          description 
+        })
+      });
+      const data = await res.json();
+
+      if (!data || !data.success || !data.department) {
+        throw new Error((data && data.error) || 'Unable to detect department');
+      }
+
+      // data.department -> { id, name, confidence }
+      hiddenId.value = data.department.id;
+      // Keep dropdown in sync (though hidden)
+      if (dropdown) dropdown.value = data.department.id;
+
+      resultBox.classList.remove('text-muted','text-danger');
+      resultBox.classList.add('text-primary');
+      resultBox.innerHTML = `Suggested Department: <span class="fw-bold">${data.department.name}</span>`;
+    } catch (err) {
+      resultBox.classList.remove('text-muted','text-primary');
+      resultBox.classList.add('text-danger');
+      resultBox.textContent = `Error: ${err.message}`;
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = original;
+    }
+  });
+})();
+</script>
+
+
+<!-- Location Script -->
+<script>
+function getLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(showPosition, showError);
+  } else {
+    alert("Geolocation is not supported by this browser.");
+  }
+}
+
+function showPosition(position) {
+  const lat = position.coords.latitude;
+  const lon = position.coords.longitude;
+
+  document.getElementById("latitude").value = lat;
+  document.getElementById("longitude").value = lon;
+
+  fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById("address").value = data.display_name;
+    })
+    .catch(() => {
+      document.getElementById("address").value = `${lat}, ${lon}`;
+    });
+}
+
+function showError() {
+  alert("Please allow location permissions.");
+}
+</script>
+
+<script>
+  (function() {
+    let departmentsCache = null;
+    const modalEl = document.getElementById('newGrievanceModal');
+    if (!modalEl) return;
+    modalEl.addEventListener('shown.bs.modal', async function() {
+      const deptSel = document.getElementById('grievance-department');
+      if (!deptSel) return;
+
+      if (!departmentsCache) {
+        try {
+          const res = await fetch("{{ url_for('api_departments') }}");
+          const data = await res.json();
+          departmentsCache = (data && data.items) || [];
+        } catch (e) {
+          departmentsCache = [];
+        }
+      }
+
+      // Populate departments
+      if (deptSel.options.length <= 1) {
+        departmentsCache.forEach(d => {
+          const opt = document.createElement('option');
+          opt.value = d.id;
+          opt.textContent = d.name;
+          deptSel.appendChild(opt);
+        });
+      }
+    });
+  })();
+</script>
+<!-- Removed legacy inline keyword script -->
+<!-- Removed temporary AI logic script with hardcoded IDs -->
+
+<!-- Removed duplicate prediction script -->
+
+<!-- Removed third duplicate prediction script -->
+
+
+{% endblock %}

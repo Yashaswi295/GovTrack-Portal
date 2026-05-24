@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="auth-page">
+
+  <div class="container">
+    <div class="auth-card-premium">
+
+      <div class="auth-header">
+        <h1 class="auth-title">Verify OTP 🔑</h1>
+        <p class="auth-subtitle">Enter OTP sent to your email</p>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <p style="color:red;">{{ message }}</p>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <form method="POST" id="otpForm">
+
+        <!-- OTP BOXES -->
+        <div style="display:flex; gap:10px; justify-content:center; margin-bottom:20px;">
+          <input type="text" maxlength="1" class="otp-box" required>
+          <input type="text" maxlength="1" class="otp-box" required>
+          <input type="text" maxlength="1" class="otp-box" required>
+          <input type="text" maxlength="1" class="otp-box" required>
+          <input type="text" maxlength="1" class="otp-box" required>
+          <input type="text" maxlength="1" class="otp-box" required>
+        </div>
+
+        <!-- hidden input -->
+        <input type="hidden" name="otp" id="finalOtp">
+
+        <button class="btn-auth">
+          Verify OTP
+        </button>
+
+      </form>
+
+      <!-- RESEND -->
+      <div style="text-align:center; margin-top:15px;">
+        <span id="timer">Resend OTP in 30s</span>
+      </div>
+
+    </div>
+  </div>
+
+</section>
+
+<script>
+  const inputs = document.querySelectorAll('.otp-box');
+  const finalOtp = document.getElementById('finalOtp');
+
+  inputs.forEach((input, index) => {
+    input.addEventListener('input', () => {
+      if (input.value.length === 1 && index < inputs.length - 1) {
+        inputs[index + 1].focus();
+      }
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === "Backspace" && !input.value && index > 0) {
+        inputs[index - 1].focus();
+      }
+    });
+  });
+
+  document.getElementById('otpForm').addEventListener('submit', () => {
+    let otp = '';
+    inputs.forEach(i => otp += i.value);
+    finalOtp.value = otp;
+  });
+
+  // TIMER
+  let time = 30;
+  const timer = document.getElementById('timer');
+
+  const countdown = setInterval(() => {
+    time--;
+    timer.innerText = "Resend OTP in " + time + "s";
+
+    if (time <= 0) {
+      clearInterval(countdown);
+      timer.innerHTML = '<a href="/forgot_password">Resend OTP</a>';
+    }
+  }, 1000);
+</script>
+
+<style>
+  .otp-box {
+    width: 45px;
+    height: 50px;
+    text-align: center;
+    font-size: 18px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(15,23,42,0.6);
+    color: white;
+  }
+</style>
+
+{% endblock %}

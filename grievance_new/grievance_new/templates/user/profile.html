@@ -1,0 +1,215 @@
+{% extends 'user/base.html' %}
+
+{% block page_title %}Profile{% endblock %}
+
+{% block extra_css %}
+<style>
+  .profile-page {
+    max-width: 980px;
+    margin: 0 auto;
+  }
+
+  .profile-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .profile-header h2 {
+    margin: 0;
+    font-size: 1.8rem;
+  }
+
+  .profile-header p {
+    margin: 6px 0 0;
+    color: var(--text-muted) !important;
+  }
+
+  .profile-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 24px;
+  }
+
+  @media (max-width: 992px) {
+    .profile-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .form-group-premium { margin-bottom: 18px; }
+  .form-label-premium { font-weight: 700; margin-bottom: 8px; display: block; color: #cbd5e1 !important; }
+  .form-control-premium {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.6) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    color: #f8fafc !important;
+    outline: none;
+    transition: all 0.2s;
+  }
+  .form-control-premium:focus {
+    border-color: rgba(99, 102, 241, 0.7) !important;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12) !important;
+  }
+  .form-control-premium[readonly] {
+    opacity: 0.8;
+    cursor: not-allowed;
+  }
+  .form-text-premium {
+    display: block;
+    margin-top: 8px;
+    color: var(--text-muted) !important;
+    font-size: 0.9rem;
+  }
+
+  .alert-premium-dashboard {
+    background: rgba(30, 41, 59, 0.65) !important;
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #f8fafc !important;
+    padding: 12px 14px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .alert-premium-dashboard.success { border-color: rgba(16,185,129,0.35); }
+  .alert-premium-dashboard.danger { border-color: rgba(239,68,68,0.35); }
+  .alert-premium-dashboard.warning { border-color: rgba(245,158,11,0.35); }
+  .alert-premium-dashboard.info { border-color: rgba(6,182,212,0.35); }
+
+  .small-kpi {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .kpi-item {
+    background: rgba(15, 23, 42, 0.45) !important;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 14px;
+  }
+  .kpi-label { color: var(--text-muted) !important; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  .kpi-value { margin-top: 6px; font-weight: 800; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+  <div class="profile-header">
+    <div>
+      <h2>My Profile</h2>
+      <p>Update your account information</p>
+    </div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <a href="{{ url_for('dashboard') }}" class="btn-glass-outline" style="padding: 10px 16px;">
+        <i class="fas fa-columns"></i>
+        <span>Dashboard</span>
+      </a>
+      <a href="{{ url_for('history') }}" class="btn-glass-outline" style="padding: 10px 16px;">
+        <i class="fas fa-clipboard-list"></i>
+        <span>My Grievances</span>
+      </a>
+    </div>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert-premium-dashboard {{ category }}">
+        <i class="fas fa-circle-info"></i>
+        <span>{{ message }}</span>
+      </div>
+    {% endfor %}
+  {% endif %}
+  {% endwith %}
+
+  <div class="profile-grid">
+    <div class="glass-card" data-aos="fade-up" data-aos-delay="150">
+      <div class="card-header-custom">
+        <h3 class="card-title">Edit Profile</h3>
+        <i class="fas fa-user-pen" style="color: #a5b4fc;"></i>
+      </div>
+      <div class="card-body-custom">
+        <form method="POST" action="{{ url_for('user_profile') }}">
+          <div class="form-group-premium">
+            <label class="form-label-premium">Full Name</label>
+            <input type="text" name="full_name" class="form-control-premium" value="{{ user.full_name or '' }}" required>
+            <span class="form-text-premium">This name will appear on your dashboard</span>
+          </div>
+
+          <div class="form-group-premium">
+            <label class="form-label-premium">Email Address</label>
+            <input type="email" class="form-control-premium" value="{{ user.email_id or '' }}" readonly>
+            <span class="form-text-premium">Email cannot be changed</span>
+          </div>
+
+          <div class="form-group-premium" style="margin-bottom: 0;">
+            <label class="form-label-premium">Mobile Number</label>
+            <input type="tel" name="mobile_number" class="form-control-premium" value="{{ user.mobile_number or '' }}" required>
+            <span class="form-text-premium">Used for account verification and updates</span>
+          </div>
+
+          <div style="display:flex; gap: 12px; flex-wrap:wrap; margin-top: 18px;">
+            <button type="submit" class="btn-glass-primary" style="padding: 10px 18px;">
+              <i class="fas fa-save"></i>
+              <span>Save Changes</span>
+            </button>
+            <a href="{{ url_for('user_profile') }}" class="btn-glass-outline" style="padding: 10px 18px;">
+              <i class="fas fa-rotate"></i>
+              <span>Reset</span>
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="glass-card" data-aos="fade-up" data-aos-delay="250">
+      <div class="card-header-custom">
+        <h3 class="card-title">Account Summary</h3>
+        <i class="fas fa-shield" style="color: #34d399;"></i>
+      </div>
+      <div class="card-body-custom">
+        <div class="small-kpi">
+          <div class="kpi-item">
+            <div class="kpi-label">Logged in as</div>
+            <div class="kpi-value">{{ user.full_name or session.get('user_name') or '—' }}</div>
+          </div>
+          <div class="kpi-item">
+            <div class="kpi-label">Email</div>
+            <div class="kpi-value" style="word-break: break-word;">{{ user.email_id or '—' }}</div>
+          </div>
+          <div class="kpi-item">
+            <div class="kpi-label">Mobile</div>
+            <div class="kpi-value">{{ user.mobile_number or '—' }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  try {
+    if (window.AOS) {
+      AOS.init({ duration: 800, easing: 'ease-out', once: true, offset: 60 });
+    }
+  } catch (e) {}
+
+  setTimeout(() => {
+    const alerts = document.querySelectorAll('.alert-premium-dashboard');
+    alerts.forEach(alert => {
+      alert.style.opacity = '0';
+      alert.style.transform = 'translateY(-10px)';
+      alert.style.transition = 'all 0.3s';
+      setTimeout(() => alert.remove(), 300);
+    });
+  }, 4500);
+</script>
+{% endblock %}

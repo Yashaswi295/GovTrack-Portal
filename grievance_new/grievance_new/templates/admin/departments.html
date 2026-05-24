@@ -1,0 +1,301 @@
+{% extends 'base.html' %}
+{% block head %}
+<style>
+  .dash-hero { position: relative; overflow: hidden; min-height: calc(100vh - 120px); background:
+    radial-gradient(1000px 520px at 10% 0%, rgba(99,102,241,.20), transparent 60%),
+    radial-gradient(900px 480px at 90% 20%, rgba(32,201,151,.14), transparent 60%),
+    linear-gradient(180deg, rgba(2,6,23,.0) 0%, rgba(2,6,23,.40) 60%, rgba(2,6,23,.0) 100%);
+  }
+  .card-hover { transition: .25s; }
+  .card-hover:hover { transform: translateY(-4px); box-shadow: 0 .75rem 1.5rem rgba(0,0,0,.08); }
+
+  .dash-hero .card {
+    background: rgba(15, 23, 42, 0.80);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  .dash-hero .text-muted { color: rgba(148, 163, 184, 0.9) !important; }
+
+  .dept-controls .form-control { min-width: 0; }
+
+  @media (max-width: 576px) {
+    .dept-top-actions { width: 100%; }
+    .dept-top-actions > a { flex: 1 1 auto; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="dash-hero py-4 py-md-5">
+  <div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
+      <div>
+        <h2 class="fw-bold mb-1">Departments</h2>
+        <div class="text-muted">Manage departments</div>
+      </div>
+      <div class="d-flex flex-wrap gap-2 dept-top-actions">
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary"><i class="bi bi-speedometer2 me-1"></i> Dashboard</a>
+        <a href="{{ url_for('admin_logout') }}" class="btn btn-outline-danger"><i class="bi bi-box-arrow-right me-1"></i> Logout</a>
+      </div>
+    </div>
+
+    <div class="row g-3 g-md-4">
+      <div class="col-12">
+        <div class="d-flex align-items-center justify-content-between">
+          <h5 class="mb-0">Quick Actions</h5>
+          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDeptModal">
+            <i class="bi bi-plus-circle me-1"></i> Add Department
+          </button>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="card h-100 card-hover">
+          <div class="card-body">
+            <div class="d-flex flex-column flex-md-row align-items-stretch align-items-md-center justify-content-between gap-2 mb-3">
+              <div class="d-flex align-items-center gap-2">
+                <h5 class="mb-0">All Departments</h5>
+                <div class="small text-muted">Click Edit to update details or Delete to remove</div>
+              </div>
+              <div class="input-group dept-controls flex-grow-1 flex-md-grow-0" style="max-width: 420px;">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" id="dept-search" class="form-control" placeholder="Search by name, email or phone">
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle" id="departments-table">
+                <thead>
+                  <tr>
+                    <th scope="col" data-sort-key="id" class="sortable">Id</th>
+                    <th scope="col">Logo</th>
+                    <th scope="col" data-sort-key="name" class="sortable">Name</th>
+                    <th scope="col" data-sort-key="email" class="sortable">Email</th>
+                    <th scope="col" data-sort-key="phone" class="sortable">Phone</th>
+                    <th scope="col" data-sort-key="created" class="sortable">Created</th>
+                    <th scope="col" class="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="departments-tbody">
+                  {% if departments and departments|length > 0 %}
+                    {% for d in departments %}
+                    <tr data-name="{{ (d.name or '')|lower }}" data-email="{{ (d.email or '')|lower }}" data-phone="{{ (d.phone or '')|lower }}" data-id="{{ d.id }}" data-created="{{ d.created_at }}">
+                      <td data-value="{{ d.id }}">{{ d.id }}</td>
+                      <td>
+                        {% if d.logo_path %}
+                          <img src="{{ url_for('static', filename=d.logo_path) }}" alt="logo" class="rounded" style="width:40px;height:40px;object-fit:cover;">
+                        {% else %}
+                          <span class="text-muted">—</span>
+                        {% endif %}
+                      </td>
+                      <td class="fw-semibold" data-value="{{ (d.name or '')|lower }}">{{ d.name }}</td>
+                      <td class="small text-muted" data-value="{{ (d.email or '')|lower }}">{{ d.email or '—' }}</td>
+                      <td class="small text-muted" data-value="{{ (d.phone or '')|lower }}">{{ d.phone or '—' }}</td>
+                      <td class="small text-muted" data-value="{{ d.created_at }}">{{ d.created_at }}</td>
+                      <td class="text-end">
+                        <div class="btn-group">
+                          <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editDeptModal"
+                            data-id="{{ d.id }}"
+                            data-name="{{ d.name }}"
+                            data-email="{{ d.email or '' }}"
+                            data-phone="{{ d.phone or '' }}"
+                            data-description="{{ d.description or '' }}">
+                            <i class="bi bi-pencil"></i> Edit
+                          </button>
+                          <form method="POST" action="{{ url_for('admin_delete_department', dept_id=d.id) }}" onsubmit="return confirm('Delete this department? This cannot be undone.');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i> Delete</button>
+                          </form>
+                        </div>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  {% else %}
+                    <tr><td colspan="5" class="text-center text-muted">No departments yet.</td></tr>
+                  {% endif %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="editDeptModal" tabindex="-1" aria-labelledby="editDeptModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editDeptModalLabel">Edit Department</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <form id="editDeptForm" method="POST" action="#" enctype="multipart/form-data">
+            <div class="modal-body">
+              <div class="row g-3">
+                <div class="col-12 col-md-6">
+                  <label class="form-label">Name</label>
+                  <input type="text" name="name" class="form-control" required>
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label">Email</label>
+                  <input type="email" name="email" class="form-control">
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label">Phone</label>
+                  <input type="text" name="phone" class="form-control">
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Description</label>
+                  <textarea name="description" class="form-control" rows="3"></textarea>
+                  <div class="form-text">Comma-separate categories to power user category filtering.</div>
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label">New Password</label>
+                  <input type="password" name="password" class="form-control" placeholder="Leave blank to keep current">
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label">Logo</label>
+                  <input type="file" name="logo" class="form-control" accept="image/png,image/jpeg,image/jpg,image/gif,image/webp">
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="addDeptModal" tabindex="-1" aria-labelledby="addDeptModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addDeptModalLabel">Add Department</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <form method="POST" action="{{ url_for('admin_departments') }}" enctype="multipart/form-data">
+            <div class="modal-body">
+              <div class="row g-3">
+                <div class="col-12 col-md-6">
+                  <label class="form-label">Name</label>
+                  <input type="text" name="name" class="form-control" required>
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label">Email</label>
+                  <input type="email" name="email" class="form-control">
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label">Phone</label>
+                  <input type="text" name="phone" class="form-control">
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Description</label>
+                  <textarea name="description" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label">Password</label>
+                  <input type="password" name="password" class="form-control" placeholder="Set department password" required>
+                  <div class="form-text">This will be used by the department to sign in.</div>
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label">Logo (optional)</label>
+                  <input type="file" name="logo" class="form-control" accept="image/png,image/jpeg,image/jpg,image/gif,image/webp">
+                  <div class="form-text">Upload a small square image for best results.</div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Add Department</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function() {
+        const modalEl = document.getElementById('editDeptModal');
+        if (!modalEl) return;
+        modalEl.addEventListener('show.bs.modal', function (event) {
+          const button = event.relatedTarget;
+          const id = button.getAttribute('data-id');
+          const name = button.getAttribute('data-name') || '';
+          const email = button.getAttribute('data-email') || '';
+          const phone = button.getAttribute('data-phone') || '';
+          const description = button.getAttribute('data-description') || '';
+
+          const form = document.getElementById('editDeptForm');
+          form.action = `{{ url_for('admin_update_department', dept_id=0) }}`.replace('/0/', `/${id}/`);
+
+          form.querySelector('input[name="name"]').value = name;
+          form.querySelector('input[name="email"]').value = email;
+          form.querySelector('input[name="phone"]').value = phone;
+          form.querySelector('textarea[name="description"]').value = description;
+
+          form.querySelector('input[name="password"]').value = '';
+          form.querySelector('input[name="logo"]').value = '';
+        });
+      })();
+    </script>
+
+    <script>
+      (function() {
+        // Client-side search
+        const searchInput = document.getElementById('dept-search');
+        const tbody = document.getElementById('departments-tbody');
+        const table = document.getElementById('departments-table');
+        if (searchInput && tbody) {
+          searchInput.addEventListener('input', function() {
+            const q = this.value.trim().toLowerCase();
+            Array.from(tbody.querySelectorAll('tr')).forEach(tr => {
+              const name = tr.getAttribute('data-name') || '';
+              const email = tr.getAttribute('data-email') || '';
+              const phone = tr.getAttribute('data-phone') || '';
+              const match = !q || name.includes(q) || email.includes(q) || phone.includes(q);
+              tr.style.display = match ? '' : 'none';
+            });
+          });
+        }
+
+        // Sortable headers
+        if (table && tbody) {
+          let sortState = { key: null, dir: 1 };
+          table.querySelectorAll('th.sortable').forEach(th => {
+            th.style.cursor = 'pointer';
+            th.addEventListener('click', function() {
+              const key = this.getAttribute('data-sort-key');
+              if (!key) return;
+              if (sortState.key === key) { sortState.dir *= -1; } else { sortState = { key, dir: 1 }; }
+              const rows = Array.from(tbody.querySelectorAll('tr')).filter(r => r.style.display !== 'none');
+              const getVal = (tr) => {
+                if (key === 'id') return parseInt(tr.getAttribute('data-id')) || 0;
+                if (key === 'created') return new Date(tr.getAttribute('data-created')).getTime() || 0;
+                return (tr.getAttribute('data-' + key) || '').toString();
+              };
+              rows.sort((a,b) => {
+                const va = getVal(a), vb = getVal(b);
+                if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * sortState.dir;
+                return va.localeCompare(vb) * sortState.dir;
+              });
+              rows.forEach(r => tbody.appendChild(r));
+            });
+          });
+        }
+      })();
+    </script>
+
+  </div>
+</section>
+{% endblock %}

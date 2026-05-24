@@ -1,0 +1,482 @@
+{% extends 'base.html' %}
+{% block head %}
+<style>
+  .dash-hero { position: relative; overflow: hidden; min-height: calc(100vh - 120px); background:
+    radial-gradient(1000px 520px at 10% 0%, rgba(99,102,241,.20), transparent 60%),
+    radial-gradient(900px 480px at 90% 20%, rgba(32,201,151,.14), transparent 60%),
+    linear-gradient(180deg, rgba(2,6,23,.0) 0%, rgba(2,6,23,.40) 60%, rgba(2,6,23,.0) 100%);
+  }
+  .card-hover { transition: .25s; }
+  .card-hover:hover { transform: translateY(-4px); box-shadow: 0 .75rem 1.5rem rgba(0,0,0,.08); }
+  .dash-hero::before { content: ""; position: absolute; top: -110px; left: -110px; width: 320px; height: 320px;
+    background: radial-gradient(circle at 30% 30%, rgba(13,110,253,.35), rgba(13,110,253,0) 70%); filter: blur(18px); border-radius: 50%; }
+  .dash-hero::after { content: ""; position: absolute; bottom: -140px; right: -140px; width: 400px; height: 400px;
+    background: radial-gradient(circle at 70% 70%, rgba(32,201,151,.35), rgba(32,201,151,0) 70%); filter: blur(18px); border-radius: 50%; }
+
+  .dash-hero .card:not(.stat-card) {
+    background: rgba(15, 23, 42, 0.80);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  .dash-hero .text-muted { color: rgba(148, 163, 184, 0.9) !important; }
+
+  .dash-controls .form-control,
+  .dash-controls .form-select {
+    min-width: 0;
+  }
+
+  @media (max-width: 576px) {
+    .dash-controls { width: 100%; }
+    .dash-controls > * { flex: 1 1 100%; }
+  }
+  /* Stat cards */
+  .stat-card { color: #fff; border: 0 !important; position: relative; overflow: hidden; }
+  .stat-card .card-body { position: relative; }
+  .stat-card .icon { font-size: 1.75rem; opacity: .9; }
+  .stat-card.stat-blue { background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%); }
+  .stat-card.stat-green { background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); }
+  .stat-card.stat-cyan { background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); }
+  .stat-card.stat-amber { background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%); }
+  .stat-card::after { content: ""; position: absolute; right: -40px; bottom: -40px; width: 160px; height: 160px; border-radius: 50%; background: rgba(255,255,255,.15); filter: blur(2px); }
+  .stat-card::before { content: ""; position: absolute; left: -30px; top: -30px; width: 110px; height: 110px; border-radius: 50%; background: rgba(255,255,255,.10); }
+  .stat-card .text-muted { color: rgba(255,255,255,.85) !important; }
+  .dark-mode { background-color: #0b0f14 !important; color: #e5e7eb !important; }
+  .dark-mode .card { background-color: #121a22 !important; color: #e5e7eb !important; border-color: #1f2a35 !important; }
+  .dark-mode .table { color: #e5ebea; }
+  .dark-mode .table thead th { border-color: #243241; }
+  .dark-mode .table tbody td { border-color: #1f2a35; }
+  .dark-mode .form-control, .dark-mode .form-select { background-color: #0f141a; color: #e5e7eb; border-color: #1f2a35; }
+  .dark-mode .btn-outline-secondary { color: #cbd5e1; border-color: #334155; }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="dash-hero py-4 py-md-5">
+  <div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
+      <div class="d-flex align-items-center gap-3">
+        <div class="rounded-circle bg-primary-subtle d-inline-flex align-items-center justify-content-center" style="width:48px;height:48px;">
+          <i class="bi bi-shield-lock text-primary"></i>
+        </div>
+        <div>
+          <h2 class="fw-bold mb-1">Admin Dashboard</h2>
+          <div class="text-muted small">Welcome, {{ session.get('admin_name') or 'Admin' }}</div>
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{{ url_for('admin_users') }}" class="btn btn-outline-primary"><i class="bi bi-people me-1"></i> Users</a>
+        <a href="{{ url_for('admin_departments') }}" class="btn btn-primary"><i class="bi bi-building me-1"></i> Departments</a>
+      </div>
+    </div>
+
+    <div class="row g-3 g-md-4">
+      <div class="col-12 col-md-6 col-xl-3">
+        <div class="card card-hover h-100 stat-card stat-blue">
+          <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <div class="text-muted small">Total Grievances</div>
+                <div class="h3 mb-0"><span id="total_count">{{ total_grievances or 0 }}</span></div>
+              </div>
+              <div class="icon"><i class="bi bi-clipboard-check"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-6 col-xl-3">
+        <a href="{{ url_for('admin_departments') }}" class="text-decoration-none text-reset">
+          <div class="card card-hover h-100 stat-card stat-green">
+            <div class="card-body">
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <div class="text-muted small">Departments</div>
+                  <div class="h3 mb-0"><span id="dept_count">{{ departments_count or 0 }}</span></div>
+                </div>
+                <div class="icon"><i class="bi bi-building"></i></div>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+      <div class="col-12 col-md-6 col-xl-3">
+        <a href="{{ url_for('admin_users') }}" class="text-decoration-none text-reset">
+          <div class="card card-hover h-100 stat-card stat-cyan">
+            <div class="card-body">
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <div class="text-muted small">Users</div>
+                  <div class="h3 mb-0"><span id="users_count">{{ users_count or 0 }}</span></div>
+                </div>
+                <div class="icon"><i class="bi bi-people"></i></div>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+      <div class="col-12 col-md-6 col-xl-3">
+        <div class="card card-hover h-100 stat-card stat-amber">
+          <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <div class="text-muted small">Open</div>
+                <div class="h3 mb-0"><span id="open_count">{{ open_grievances or 0 }}</span></div>
+              </div>
+              <div class="icon"><i class="bi bi-hourglass-split"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 g-md-4 mt-1 mt-md-2">
+      <div class="col-12">
+        <div class="card h-100 card-hover">
+          <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+              <h5 class="mb-0">Recent Grievances</h5>
+              <div class="dash-controls d-flex flex-wrap gap-2 ms-auto">
+                <input id="search-input" type="text" class="form-control form-control-sm flex-grow-1" placeholder="Search title/user/email...">
+                <select id="status-filter" class="form-select form-select-sm">
+                  <option value="all">All Statuses</option>
+                  <option value="Open">Open</option>
+                  <option value="Resolved">Resolved</option>
+                  <option value="other">Other</option>
+                </select>
+                <button id="export-csv" class="btn btn-sm btn-outline-secondary"><i class="bi bi-file-earmark-arrow-down me-1"></i> CSV</button>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle" id="grievances-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Id</th>
+                    <th scope="col">Title</th>
+                    <th scope="col">Category</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">User</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Created</th>
+                    <th scope="col">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="grievances_body">
+                  {% if grievances and grievances|length > 0 %}
+                    {% for g in grievances %}
+                      <tr>
+                        <td>{{ g.id }}</td>
+                        <td class="fw-semibold">{{ g.title }}</td>
+                        <td><span class="badge bg-light text-dark">{{ g.category }}</span></td>
+                        <td>
+                          {% if g.status == 'Open' %}
+                            <span class="badge bg-warning text-dark">Open</span>
+                          {% elif g.status == 'Resolved' %}
+                            <span class="badge bg-success">Resolved</span>
+                          {% else %}
+                            <span class="badge bg-secondary">{{ g.status }}</span>
+                          {% endif %}
+                        </td>
+                        <td>{{ g.user_name or '-' }}</td>
+                        <td class="small text-muted">{{ g.user_email or g.user_ref }}</td>
+                        <td class="small text-muted">{{ g.created_at }}</td>
+                        <td>
+                          <button class="btn btn-sm btn-outline-primary view-btn" data-id="{{ g.id }}">
+                            <i class="bi bi-eye"></i> View
+                          </button>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  {% else %}
+                    <tr><td colspan="8" class="text-center text-muted">No grievances</td></tr>
+                  {% endif %}
+                </tbody>
+              </table>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-2">
+              <div class="small text-muted" id="page-info"></div>
+              <nav>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div class="modal fade" id="grievanceModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-scrollable modal-lg modal-fullscreen-sm-down">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="gv-title">Grievance</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-2">
+              <span id="gv-category" class="badge bg-light text-dark me-1"></span>
+              <span id="gv-status" class="badge"></span>
+            </div>
+            <div class="text-muted small mb-2" id="gv-created"></div>
+            <div class="mb-3" id="gv-description"></div>
+            <div class="mb-3" id="gv-image-wrap" style="display:none;">
+              <img id="gv-image" src="#" alt="attachment" class="img-fluid rounded border" />
+            </div>
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <div class="card h-100">
+                  <div class="card-body">
+                    <h6 class="mb-2">User</h6>
+                    <div class="small"><strong>Name:</strong> <span id="gv-user-name">-</span></div>
+                    <div class="small"><strong>Email:</strong> <span id="gv-user-email">-</span></div>
+                    <div class="small"><strong>Mobile:</strong> <span id="gv-user-mobile">-</span></div>
+                    <div class="small"><strong>Ref:</strong> <span id="gv-user-ref">-</span></div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <div class="card h-100">
+                  <div class="card-body">
+                    <h6 class="mb-2">Department</h6>
+                    <div class="small"><strong>Name:</strong> <span id="gv-dept-name">-</span></div>
+                    <div class="small"><strong>Email:</strong> <span id="gv-dept-email">-</span></div>
+                    <div class="small"><strong>Phone:</strong> <span id="gv-dept-phone">-</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><i class="bi bi-arrow-left"></i> Back</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  let grievancesData = [];
+  let filteredData = [];
+  let currentPage = 1;
+  const pageSize = 10;
+
+  async function fetchGrievances() {
+    try {
+      const res = await fetch("{{ url_for('admin_api_grievances') }}", { credentials: 'same-origin' });
+      if (!res.ok) return;
+      const data = await res.json();
+      const total = document.getElementById('total_count');
+      if (total && typeof data.total !== 'undefined') total.textContent = data.total;
+      const open = document.getElementById('open_count');
+      if (open && typeof data.open !== 'undefined') open.textContent = data.open;
+      grievancesData = Array.isArray(data.items) ? data.items : [];
+      applyFilters();
+    } catch (e) {}
+  }
+
+  function applyFilters() {
+    const q = (document.getElementById('search-input')?.value || '').toLowerCase();
+    const status = document.getElementById('status-filter')?.value || 'all';
+    filteredData = grievancesData.filter(g => {
+      const hay = `${g.title || ''} ${g.user_name || ''} ${g.user_email || g.user_ref || ''}`.toLowerCase();
+      const okQ = q ? hay.includes(q) : true;
+      const s = String(g.status || '').trim();
+      const okS = status === 'all' ? true : (status === 'other' ? (s !== 'Open' && s !== 'Resolved') : s === status);
+      return okQ && okS;
+    });
+    currentPage = 1;
+    renderTable();
+    renderPager();
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('grievances_body');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (!filteredData.length) {
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No grievances</td></tr>';
+      const info = document.getElementById('page-info');
+      if (info) info.textContent = '';
+      return;
+    }
+    const start = (currentPage - 1) * pageSize;
+    const pageItems = filteredData.slice(start, start + pageSize);
+    const rows = pageItems.map(g => `
+      <tr>
+        <td>${g.id}</td>
+        <td class="fw-semibold">${escapeHtml(g.title || '')}</td>
+        <td><span class="badge bg-light text-dark">${escapeHtml(g.category || '')}</span></td>
+        <td>${renderStatus(g.status)}</td>
+        <td>${escapeHtml(g.user_name || '-')}</td>
+        <td class="small text-muted">${escapeHtml(g.user_email || g.user_ref || '')}</td>
+        <td class="small text-muted">${escapeHtml(g.created_at || '')}</td>
+        <td><button class="btn btn-sm btn-outline-primary view-btn" data-id="${g.id}"><i class="bi bi-eye"></i> View</button></td>
+      </tr>`).join('');
+    tbody.innerHTML = rows;
+    const info = document.getElementById('page-info');
+    if (info) {
+      const end = Math.min(start + pageSize, filteredData.length);
+      info.textContent = `${start + 1}-${end} of ${filteredData.length}`;
+    }
+  }
+
+  function renderPager() {
+    const pager = document.getElementById('pager');
+    if (!pager) return;
+    pager.innerHTML = '';
+    const pages = Math.ceil(filteredData.length / pageSize) || 1;
+    const mk = (label, page, disabled=false, active=false) => `
+      <li class="page-item ${disabled ? 'disabled' : ''} ${active ? 'active' : ''}">
+        <a class="page-link" href="#" data-page="${page}">${label}</a>
+      </li>`;
+    pager.insertAdjacentHTML('beforeend', mk('«', Math.max(1, currentPage - 1), currentPage === 1, false));
+    for (let p = 1; p <= pages; p++) pager.insertAdjacentHTML('beforeend', mk(String(p), p, false, p === currentPage));
+    pager.insertAdjacentHTML('beforeend', mk('»', Math.min(pages, currentPage + 1), currentPage === pages, false));
+    pager.querySelectorAll('a[data-page]').forEach(a => {
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        const p = parseInt(a.getAttribute('data-page'));
+        if (!isNaN(p) && p >= 1) { currentPage = p; renderTable(); renderPager(); }
+      });
+    });
+  }
+
+  function renderStatus(s) {
+    if (s === 'Resolved') return '<span class="badge bg-success">Resolved</span>';
+    if (s === 'Open') return '<span class="badge bg-warning text-dark">Open</span>';
+    return `<span class=\"badge bg-secondary\">${escapeHtml(s || '-')}</span>`;
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>\"]/g, function(m) {
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]);
+    });
+  }
+
+  function exportCSV() {
+    if (!filteredData.length) return;
+    const header = ['Id','Title','Category','Status','User','Email','Created'];
+    const rows = filteredData.map(g => [g.id, g.title || '', g.category || '', g.status || '', g.user_name || '-', (g.user_email || g.user_ref || ''), g.created_at || '']);
+    const csv = [header, ...rows].map(r => r.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'grievances.csv'; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function setupDarkMode() {
+    const btn = document.getElementById('toggle-dark');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+    });
+  }
+
+  async function fetchStats() {
+    try {
+      const res = await fetch("{{ url_for('admin_api_stats') }}", { credentials: 'same-origin' });
+      if (!res.ok) return;
+      const data = await res.json();
+      const total = document.getElementById('total_count');
+      const dept = document.getElementById('dept_count');
+      const users = document.getElementById('users_count');
+      if (total && typeof data.grievances !== 'undefined') total.textContent = data.grievances;
+      if (dept && typeof data.departments !== 'undefined') dept.textContent = data.departments;
+      if (users && typeof data.users !== 'undefined') users.textContent = data.users;
+    } catch (e) {}
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    setupDarkMode();
+    document.getElementById('search-input')?.addEventListener('input', applyFilters);
+    document.getElementById('status-filter')?.addEventListener('change', applyFilters);
+    document.getElementById('export-csv')?.addEventListener('click', exportCSV);
+    // Delegate view buttons
+    document.getElementById('grievances_body')?.addEventListener('click', (e) => {
+      const btn = e.target.closest('.view-btn');
+      if (btn) {
+        const id = btn.getAttribute('data-id');
+        if (id) openGrievanceModal(parseInt(id));
+      }
+    });
+    fetchGrievances();
+    setInterval(fetchGrievances, 5000);
+    fetchStats();
+    setInterval(fetchStats, 5000);
+  });
+
+  async function openGrievanceModal(id) {
+    try {
+      const res = await fetch(`{{ url_for('admin_api_grievance_detail', g_id=0) }}`.replace('/0', `/${id}`), { credentials: 'same-origin' });
+      if (!res.ok) return;
+      const g = await res.json();
+      // Populate
+      document.getElementById('gv-title').textContent = g.title || `Grievance #${id}`;
+      document.getElementById('gv-category').textContent = g.category || '';
+      const st = String(g.status || '').trim();
+      const gvStatus = document.getElementById('gv-status');
+      gvStatus.className = 'badge ' + (st === 'Open' ? 'bg-warning text-dark' : (st === 'Resolved' ? 'bg-success' : 'bg-secondary'));
+      gvStatus.textContent = st || '-';
+      document.getElementById('gv-created').textContent = g.created_at ? `Created: ${g.created_at}` : '';
+      document.getElementById('gv-description').textContent = g.description || '-';
+      const imgWrap = document.getElementById('gv-image-wrap');
+      if (g.image_path) {
+        const src = `{{ url_for('static', filename='') }}` + (g.image_path || '').replace(/^\/+/, '');
+        document.getElementById('gv-image').src = src;
+        imgWrap.style.display = '';
+      } else {
+        imgWrap.style.display = 'none';
+      }
+      document.getElementById('gv-user-name').textContent = g.user_name || '-';
+      document.getElementById('gv-user-email').textContent = g.user_email || '-';
+      document.getElementById('gv-user-mobile').textContent = g.user_mobile || '-';
+      document.getElementById('gv-user-ref').textContent = g.user_ref || '-';
+      document.getElementById('gv-dept-name').textContent = g.department_name || '-';
+      document.getElementById('gv-dept-email').textContent = g.department_email || '-';
+      document.getElementById('gv-dept-phone').textContent = g.department_phone || '-';
+
+      // Real-time enrichment if missing
+      const tasks = [];
+      if ((!g.user_name || !g.user_email || !g.user_mobile) && g.user_ref) {
+        tasks.push(fetch(`{{ url_for('admin_api_user_by_ref') }}?ref=${encodeURIComponent(g.user_ref)}`, { credentials: 'same-origin' })
+          .then(r => r.ok ? r.json() : null)
+          .then(u => { if (u) {
+            document.getElementById('gv-user-name').textContent = u.full_name || document.getElementById('gv-user-name').textContent;
+            document.getElementById('gv-user-email').textContent = u.email_id || document.getElementById('gv-user-email').textContent;
+            document.getElementById('gv-user-mobile').textContent = u.mobile_number || document.getElementById('gv-user-mobile').textContent;
+          }}));
+      }
+      if ((!g.department_name || !g.department_email) && g.department_id) {
+        tasks.push(fetch(`{{ url_for('admin_api_department_by_id', dept_id=0) }}`.replace('/0', `/${g.department_id}`), { credentials: 'same-origin' })
+          .then(r => r.ok ? r.json() : null)
+          .then(d => { if (d) {
+            document.getElementById('gv-dept-name').textContent = d.name || document.getElementById('gv-dept-name').textContent;
+            document.getElementById('gv-dept-email').textContent = d.email || document.getElementById('gv-dept-email').textContent;
+            document.getElementById('gv-dept-phone').textContent = d.phone || document.getElementById('gv-dept-phone').textContent;
+          }}));
+      }
+
+      if (tasks.length) { Promise.allSettled(tasks).catch(() => {}); }
+
+      const modalEl = document.getElementById('grievanceModal');
+      const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+      modal.show();
+    } catch (e) {}
+  }
+</script>
+{% endblock %}

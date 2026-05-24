@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title or 'Dashboard | GovTrack' }}</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- AOS Animation -->
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <style>
+    /* CRITICAL: Force dark theme everywhere */
+    :root {
+      --primary: #4f46e5;
+      --primary-light: #6366f1;
+      --primary-dark: #3730a3;
+      --accent-orange: #f59e0b;
+      --accent-green: #10b981;
+      --accent-blue: #06b6d4;
+      --glass-bg: rgba(30, 41, 59, 0.7);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --bg-dark: #0f172a;
+      --bg-darker: #020617;
+    }
+
+    /* OVERRIDE BOOTSTRAP - Force dark background */
+    html, body {
+      background-color: #020617 !important;
+      color: #f8fafc !important;
+      font-family: 'Inter', sans-serif !important;
+      min-height: 100vh !important;
+      margin: 0;
+      padding: 0;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #f8fafc !important;
+    }
+
+    /* Layout */
+    .dashboard-layout {
+      display: flex;
+      min-height: 100vh;
+      background: #020617 !important;
+    }
+
+    /* Sidebar - Dark Fixed */
+    .sidebar {
+      width: 280px;
+      background: rgba(15, 23, 42, 0.98) !important;
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      height: 100vh;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+    }
+
+    .sidebar-header {
+      padding: 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .sidebar-brand {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      font-size: 1.5rem;
+      background: linear-gradient(135deg, #fff 0%, #6366f1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 24px 16px;
+      overflow-y: auto;
+    }
+
+    .nav-section-title {
+      color: #64748b;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+      padding: 0 12px;
+    }
+
+    .nav-item-dash {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      color: #94a3b8 !important;
+      text-decoration: none;
+      border-radius: 12px;
+      transition: all 0.3s;
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+
+    .nav-item-dash:hover, .nav-item-dash.active {
+      background: rgba(99, 102, 241, 0.1) !important;
+      color: #f8fafc !important;
+    }
+
+    .nav-item-dash.active {
+      border-right: 3px solid #6366f1;
+    }
+
+    .sidebar-footer {
+      padding: 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .btn-logout {
+      width: 100%;
+      padding: 12px;
+      background: rgba(239, 68, 68, 0.1) !important;
+      border: 1px solid rgba(239, 68, 68, 0.2) !important;
+      color: #fca5a5 !important;
+      border-radius: 10px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+
+    .btn-logout:hover {
+      background: rgba(239, 68, 68, 0.2) !important;
+      color: #fee2e2 !important;
+    }
+
+    /* Main Content - MUST BE DARK */
+    .main-area {
+      flex: 1;
+      margin-left: 280px;
+      background: #020617 !important;
+      min-height: 100vh;
+      width: calc(100% - 280px);
+    }
+
+    /* Header */
+    .top-bar {
+      background: rgba(15, 23, 42, 0.95) !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 20px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .page-info h1 {
+      font-size: 1.75rem;
+      margin: 0;
+      background: linear-gradient(135deg, #fff 0%, #6366f1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .page-info p {
+      color: #94a3b8 !important;
+      margin: 4px 0 0;
+      font-size: 0.95rem;
+    }
+
+    .user-badge {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 16px;
+      background: rgba(30, 41, 59, 0.7) !important;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 50px;
+      color: #f8fafc !important;
+      font-weight: 600;
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #4f46e5, #3730a3);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      color: white;
+    }
+
+    /* Content */
+    .dashboard-content {
+      padding: 32px;
+      background: #020617 !important;
+      min-height: calc(100vh - 80px);
+    }
+
+    /* Stats Cards - Glassmorphism Dark */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    @media (max-width: 1200px) {
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+      .stats-row { grid-template-columns: 1fr; }
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .main-area { margin-left: 0; width: 100%; }
+      .mobile-toggle { display: flex !important; }
+    }
+
+    .stat-box {
+      background: rgba(30, 41, 59, 0.6) !important;
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .stat-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent-color, #6366f1), transparent);
+      opacity: 0.8;
+    }
+
+    .stat-box:hover {
+      transform: translateY(-5px);
+      border-color: var(--accent-color, #6366f1);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+
+    .stat-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.05) !important;
+      border: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      color: var(--accent-color, #6366f1);
+      margin-bottom: 16px;
+    }
+
+    .stat-label {
+      color: #94a3b8 !important;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .stat-number {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      color: #f8fafc !important;
+    }
+
+    .stat-total { --accent-color: #6366f1; }
+    .stat-open { --accent-color: #f59e0b; }
+    .stat-resolved { --accent-color: #10b981; }
+    .stat-messages { --accent-color: #06b6d4; }
+
+    /* Glass Cards */
+    .glass-card {
+      background: rgba(30, 41, 59, 0.5) !important;
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .card-header-custom {
+      padding: 20px 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255,255,255,0.02) !important;
+    }
+
+    .card-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #f8fafc !important;
+      margin: 0;
+    }
+
+    .card-body-custom {
+      padding: 24px;
+    }
+
+    /* Buttons */
+    .btn-glass-primary {
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%) !important;
+      border: none;
+      border-radius: 10px;
+      color: white !important;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s;
+      text-decoration: none;
+      box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+    }
+
+    .btn-glass-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(79, 70, 229, 0.4);
+      color: white !important;
+    }
+
+    .btn-glass-outline {
+      padding: 10px 20px;
+      background: transparent !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      border-radius: 10px;
+      color: #94a3b8 !important;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s;
+      text-decoration: none;
+    }
+
+    .btn-glass-outline:hover {
+      background: rgba(255,255,255,0.05) !important;
+      border-color: rgba(255,255,255,0.2) !important;
+      color: #f8fafc !important;
+    }
+
+    /* Table */
+    .table-dark-custom {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    .table-dark-custom th {
+      background: rgba(15, 23, 42, 0.8) !important;
+      color: #64748b !important;
+      font-weight: 700;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      padding: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
+
+    .table-dark-custom td {
+      padding: 16px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: #f8fafc !important;
+      vertical-align: middle;
+    }
+
+    .table-dark-custom tr:hover td {
+      background: rgba(99, 102, 241, 0.05) !important;
+    }
+
+    .badge-custom {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border: 1px solid;
+    }
+
+    .badge-open {
+      background: rgba(245, 158, 11, 0.1) !important;
+      color: #fbbf24 !important;
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    .badge-resolved {
+      background: rgba(16, 185, 129, 0.1) !important;
+      color: #34d399 !important;
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .badge-category {
+      background: rgba(99, 102, 241, 0.1) !important;
+      color: #a5b4fc !important;
+      border-color: rgba(99, 102, 241, 0.3);
+    }
+
+    /* Modal */
+    .modal-dark .modal-content {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      color: #f8fafc !important;
+    }
+
+    .modal-dark .modal-header {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
+
+    .modal-dark .modal-footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
+
+    .form-control-dark {
+      background: rgba(15, 23, 42, 0.6) !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      color: #f8fafc !important;
+      border-radius: 8px;
+    }
+
+    .form-control-dark:focus {
+      background: rgba(15, 23, 42, 0.8) !important;
+      border-color: #6366f1 !important;
+      color: #f8fafc !important;
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1) !important;
+    }
+
+    /* Mobile Toggle */
+    .mobile-toggle {
+      display: none;
+      width: 40px;
+      height: 40px;
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      color: #f8fafc;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Prevent Bootstrap light leaks */
+    .container, .row, .col, .col-lg-8, .col-lg-4, .col-md-6, .col-12 {
+      background: transparent !important;
+    }
+  </style>
+
+  {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+
+<div class="dashboard-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a href="{{ url_for('index') }}" class="sidebar-brand">
+        <i class="fas fa-shield-halved"></i>
+        GovTrack
+      </a>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-title">Menu</div>
+        <a href="{{ url_for('dashboard') }}" class="nav-item-dash {{ 'active' if request.endpoint == 'dashboard' }}">
+          <span class="nav-icon"><i class="fas fa-columns"></i></span>
+          <span>Dashboard</span>
+        </a>
+        <a href="{{ url_for('history') }}" class="nav-item-dash {{ 'active' if request.endpoint == 'history' }}">
+          <span class="nav-icon"><i class="fas fa-clipboard-list"></i></span>
+          <span>My Grievances</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Account</div>
+        <a href="{{ url_for('user_profile') }}" class="nav-item-dash {{ 'active' if request.endpoint == 'user_profile' }}">
+          <span class="nav-icon"><i class="fas fa-user"></i></span>
+          <span>Profile</span>
+        </a>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="{{ url_for('logout') }}" class="btn-logout">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Logout</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Overlay -->
+  <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:999;"></div>
+
+  <!-- Main -->
+  <div class="main-area">
+
+    <!-- Header -->
+    <header class="top-bar">
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <button class="mobile-toggle" onclick="toggleSidebar()">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="page-info">
+          <h1>{% block page_title %}Dashboard{% endblock %}</h1>
+          <p>Welcome back, {{ session.get('user_name', 'User') }}</p>
+        </div>
+      </div>
+      <div class="user-badge">
+        <div class="user-avatar"><i class="fas fa-user"></i></div>
+        <span>{{ session.get('user_name', 'User') }}</span>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <div class="dashboard-content">
+      {% block content %}{% endblock %}
+    </div>
+
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    const overlay = document.getElementById('overlay');
+    overlay.style.display = overlay.style.display === 'block' ? 'none' : 'block';
+  }
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

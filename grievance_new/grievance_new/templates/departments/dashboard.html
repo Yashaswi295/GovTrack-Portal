@@ -1,0 +1,622 @@
+{% extends 'base.html' %}
+{% block head %}
+<style>
+  .dept-dashboard { color: #e5e7eb; }
+  .dept-dashboard .text-muted { color: rgba(226,232,240,0.75) !important; }
+  .dept-dashboard .card { background: rgba(15, 23, 42, 0.70); border-color: rgba(255, 255, 255, 0.10); }
+  .dept-dashboard .list-group-item { background: transparent; color: #e5e7eb; border-color: rgba(255,255,255,0.10); }
+  .dept-dashboard .table { color: #e5e7eb; }
+  .dept-dashboard .table thead th { color: #cbd5e1; border-color: rgba(255,255,255,0.10); }
+  .dept-dashboard .table tbody td { border-color: rgba(255,255,255,0.08); }
+  .dept-dashboard .badge.bg-light { background: rgba(255,255,255,0.10) !important; color: #e5e7eb !important; }
+  .dash-hero { position: relative; overflow: hidden; min-height: calc(100vh - 120px); background:
+    radial-gradient(1000px 520px at 10% 0%, rgba(13,110,253,.20), transparent 60%),
+    radial-gradient(900px 480px at 90% 20%, rgba(32,201,151,.18), transparent 60%),
+    linear-gradient(180deg, rgba(2, 6, 23, 1) 0%, rgba(15, 23, 42, 1) 55%, rgba(2, 6, 23, 1) 100%);
+  }
+  .card-hover { transition: .25s; }
+  .card-hover:hover { transform: translateY(-4px); box-shadow: 0 .75rem 1.5rem rgba(0,0,0,.08); }
+  .dash-hero::before { content: ""; position: absolute; top: -110px; left: -110px; width: 320px; height: 320px;
+    background: radial-gradient(circle at 30% 30%, rgba(13,110,253,.35), rgba(13,110,253,0) 70%); filter: blur(18px); border-radius: 50%; }
+  .dash-hero::after { content: ""; position: absolute; bottom: -140px; right: -140px; width: 400px; height: 400px;
+    background: radial-gradient(circle at 70% 70%, rgba(32,201,151,.35), rgba(32,201,151,0) 70%); filter: blur(18px); border-radius: 50%; }
+  /* Stat cards */
+  .stat-card { color: #fff; border: 0 !important; position: relative; overflow: hidden; }
+  .stat-card .card-body { position: relative; }
+  .stat-card .icon { font-size: 1.75rem; opacity: .9; }
+  .stat-card.stat-blue { background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%); }
+  .stat-card.stat-green { background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); }
+  .stat-card.stat-cyan { background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); }
+  .stat-card.stat-amber { background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%); }
+  .stat-card::after { content: ""; position: absolute; right: -40px; bottom: -40px; width: 160px; height: 160px; border-radius: 50%; background: rgba(255,255,255,.15); filter: blur(2px); }
+  .stat-card::before { content: ""; position: absolute; left: -30px; top: -30px; width: 110px; height: 110px; border-radius: 50%; background: rgba(255,255,255,.10); }
+  .stat-card .text-muted { color: rgba(255,255,255,.85) !important; }
+
+  /* Recent grievances - coal black / premium table */
+  .recent-card { background: rgba(2, 6, 23, 0.78) !important; border: 1px solid rgba(255,255,255,0.10); }
+  .recent-card .card-body { padding: 1.1rem; }
+  @media (min-width: 768px) { .recent-card .card-body { padding: 1.25rem; } }
+
+  .recent-toolbar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+  .recent-toolbar .recent-title { margin: 0; }
+  .recent-toolbar .recent-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-left: auto; }
+  .recent-toolbar .form-control,
+  .recent-toolbar .form-select { min-height: 34px; height: 34px; font-size: .875rem; }
+  .recent-toolbar .form-control,
+  .recent-toolbar .form-select { background: rgba(15, 23, 42, 0.65); border-color: rgba(255,255,255,0.12); color: #e5e7eb; }
+  .recent-toolbar .form-control::placeholder { color: rgba(226,232,240,0.55); }
+  .recent-toolbar .form-control:focus,
+  .recent-toolbar .form-select:focus { box-shadow: 0 0 0 4px rgba(99,102,241,0.15); border-color: rgba(99,102,241,0.55); }
+
+  @media (max-width: 576px) {
+    .recent-toolbar { align-items: stretch; }
+    .recent-toolbar .recent-actions { width: 100%; margin-left: 0; }
+    .recent-toolbar .recent-actions > * { flex: 1 1 auto; }
+    .recent-toolbar #search-input { width: 100% !important; min-width: 0 !important; }
+    .recent-toolbar #status-filter { width: 100% !important; min-width: 0 !important; }
+  }
+
+  .recent-table-wrap { border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.10); }
+  .recent-table { margin-bottom: 0; }
+  .recent-table thead th {
+    background: rgba(15, 23, 42, 0.92);
+    color: #cbd5e1;
+    font-size: .78rem;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+    border-bottom: 1px solid rgba(255,255,255,0.10);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    white-space: nowrap;
+  }
+  .recent-table tbody td { vertical-align: middle; }
+  .recent-table tbody tr { background: rgba(2, 6, 23, 0.30); }
+  .recent-table tbody tr:nth-child(2n) { background: rgba(2, 6, 23, 0.42); }
+  .recent-table tbody tr:hover { background: rgba(99, 102, 241, 0.10); }
+
+  .recent-card .pagination .page-link {
+    background: rgba(15, 23, 42, 0.75);
+    border-color: rgba(255,255,255,0.12);
+    color: #e5e7eb;
+  }
+  .recent-card .pagination .page-item.active .page-link {
+    background: rgba(37, 99, 235, 0.95);
+    border-color: rgba(37, 99, 235, 0.95);
+    color: #fff;
+  }
+  .recent-card .pagination .page-item.disabled .page-link { opacity: .5; }
+  /* Simple dark mode */
+  .dark-mode { background-color: #0b0f14 !important; color: #e5e7eb !important; }
+  .dark-mode .card { background-color: #121a22 !important; color: #e5e7eb !important; border-color: #1f2a35 !important; }
+  .dark-mode .table { color: #e5ebea; }
+  .dark-mode .table thead th { border-color: #243241; }
+  .dark-mode .table tbody td { border-color: #1f2a35; }
+  .dark-mode .list-group-item { background-color: #121a22; color: #e5e7eb; border-color: #1f2a35; }
+  .dark-mode .form-control, .dark-mode .form-select { background-color: #0f141a; color: #e5e7eb; border-color: #1f2a35; }
+  .dark-mode .btn-outline-secondary { color: #cbd5e1; border-color: #334155; }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="dash-hero py-4 py-md-5 dept-dashboard">
+  <div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
+      <div class="d-flex align-items-center gap-3">
+        {% if department and department.logo_path %}
+          <img src="{{ url_for('static', filename=department.logo_path) }}" class="rounded" style="width:48px;height:48px;object-fit:cover;" alt="logo">
+        {% else %}
+          <div class="rounded-circle bg-success-subtle d-inline-flex align-items-center justify-content-center" style="width:48px;height:48px;">
+            <i class="bi bi-building text-success"></i>
+          </div>
+        {% endif %}
+        <div>
+          <h2 class="fw-bold mb-1">{{ department.name if department else 'Department' }} Dashboard</h2>
+          <div class="text-muted small">{{ department.email or '—' }} · {{ department.phone or '—' }}</div>
+        </div>
+      </div>
+    </div>
+
+    {% set total = (grievances|length) if grievances else 0 %}
+    {% set open_c = (grievances|selectattr('status','equalto','Open')|list|length) %}
+    {% set resolved_c = (grievances|selectattr('status','equalto','Resolved')|list|length) %}
+
+    <div class="row g-3 g-md-4 mb-1 mb-md-2">
+      <div class="col-12 col-md-6 col-xl-3">
+        <div class="card card-hover h-100 stat-card stat-blue">
+          <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <div class="text-muted small">Total Grievances</div>
+                <div class="h3 mb-0">{{ total }}</div>
+              </div>
+              <div class="icon"><i class="bi bi-clipboard-check"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-6 col-xl-3">
+        <div class="card card-hover h-100 stat-card stat-amber">
+          <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <div class="text-muted small">Open</div>
+                <div class="h3 mb-0">{{ open_c }}</div>
+              </div>
+              <div class="icon"><i class="bi bi-hourglass-split"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-6 col-xl-3">
+        <div class="card card-hover h-100 stat-card stat-green">
+          <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <div class="text-muted small">Resolved</div>
+                <div class="h3 mb-0">{{ resolved_c }}</div>
+              </div>
+              <div class="icon"><i class="bi bi-check2-circle"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-6 col-xl-3">
+        <div class="card card-hover h-100 stat-card stat-cyan">
+          <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <div class="text-muted small">Other</div>
+                <div class="h3 mb-0">{{ total - open_c - resolved_c }}</div>
+              </div>
+              <div class="icon"><i class="bi bi-collection"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 g-md-4">
+      <div class="col-12 col-lg-8">
+        <div class="card h-100 card-hover recent-card">
+          <div class="card-body">
+            <div class="recent-toolbar mb-3">
+              <h5 class="recent-title">Recent Grievances</h5>
+              <div class="recent-actions">
+                <input id="search-input" type="text" class="form-control form-control-sm" placeholder="Search title/user..." style="min-width: 220px;">
+                <select id="status-filter" class="form-select form-select-sm" style="min-width: 170px;">
+                  <option value="all">All Statuses</option>
+                  <option value="Open">Open</option>
+                  <option value="Resolved">Resolved</option>
+                  <option value="other">Other</option>
+                </select>
+                <button id="export-csv" class="btn btn-sm btn-outline-secondary"><i class="bi bi-file-earmark-arrow-down me-1"></i> CSV</button>
+                <a href="{{ url_for('department_grievances') }}" class="btn btn-sm btn-outline-secondary">View all</a>
+              </div>
+            </div>
+            <div class="recent-table-wrap">
+              <div class="table-responsive" style="max-height: min(420px, 55vh);">
+                <table class="table table-hover align-middle recent-table" id="grievances-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Id</th>
+                    <th scope="col">Title</th>
+                    <th scope="col">Category</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">User Ref</th>
+                    <th scope="col">Created</th>
+                    <th scope="col" class="text-center">Location</th>
+                    <th scope="col" class="text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="grievances-body">
+                  {% if grievances and grievances|length > 0 %}
+                    {% for g in grievances %}
+                      <tr>
+                        <td>{{ g.id }}</td>
+                        <td class="fw-semibold">{{ g.title }}</td>
+                        <td><span class="badge bg-light text-dark">{{ g.category }}</span></td>
+                        <td>
+                          {% if g.status == 'Open' %}
+                            <span class="badge bg-warning text-dark">Open</span>
+                          {% elif g.status == 'Resolved' %}
+                            <span class="badge bg-success">Resolved</span>
+                          {% else %}
+                            <span class="badge bg-secondary">{{ g.status }}</span>
+                          {% endif %}
+                        </td>
+                        <td class="small text-muted">{{ g.user_ref }}</td>
+                        <td class="small text-muted">{{ g.created_at }}</td>
+                        <td class="text-center">
+                          {% if g.latitude and g.longitude %}
+                            <a href="https://www.google.com/maps?q={{ g.latitude }},{{ g.longitude }}" target="_blank" rel="noopener" class="text-decoration-none" title="View on map">
+                              <i class="bi bi-geo-alt-fill text-primary"></i>
+                            </a>
+                          {% else %}
+                            <span class="text-muted small">—</span>
+                          {% endif %}
+                        </td>
+                        <td class="text-center">
+                          <button type="button" class="btn btn-sm btn-primary review-btn" data-bs-toggle="modal" data-bs-target="#reviewModal" data-id="{{ g.id }}" data-title="{{ g.title }}" data-status="{{ g.status }}">
+                            <i class="bi bi-chat-left-text me-1"></i> Review
+                          </button>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  {% else %}
+                    <tr><td colspan="8" class="text-center text-muted py-4">No grievances to show.</td></tr>
+                  {% endif %}
+                </tbody>
+              </table>
+              </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-2">
+              <div class="small text-muted" id="page-info"></div>
+              <nav>
+                <ul class="pagination pagination-sm mb-0" id="pager"></ul>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-lg-4">
+        <div class="card h-100 card-hover">
+          <div class="card-body">
+            <h5 class="mb-3">Department Info</h5>
+            {% if department %}
+              <ul class="list-group list-group-flush">
+                <li class="list-group-item px-0 d-flex justify-content-between align-items-start">
+                  <div class="small text-muted">Name</div>
+                  <div class="fw-semibold">{{ department.name }}</div>
+                </li>
+                <li class="list-group-item px-0 d-flex justify-content-between align-items-start">
+                  <div class="small text-muted">Email</div>
+                  <div class="fw-semibold">{{ department.email or '—' }}</div>
+                </li>
+                <li class="list-group-item px-0 d-flex justify-content-between align-items-start">
+                  <div class="small text-muted">Phone</div>
+                  <div class="fw-semibold">{{ department.phone or '—' }}</div>
+                </li>
+                <li class="list-group-item px-0 d-flex justify-content-between align-items-start">
+                  <div class="small text-muted">Created</div>
+                  <div class="fw-semibold">{{ department.created_at }}</div>
+                </li>
+              </ul>
+            {% else %}
+              <div class="text-muted">No department details.</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 g-md-4 mt-1 mt-md-2">
+      <div class="col-12">
+        <div class="card card-hover">
+          <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <h5 class="mb-0">Status Overview</h5>
+            </div>
+            <canvas id="statusChart" height="80"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+<!-- Review Modal -->
+<div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="reviewModalLabel">Review Grievance: <span id="review_grievance_title"></span></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="reviewForm" class="needs-validation" novalidate>
+        <div class="modal-body">
+          <div id="review_inline_message" class="d-none"></div>
+          <input type="hidden" id="review_grievance_id" />
+          <div class="row g-3">
+            <div class="col-12">
+              <label for="review_text" class="form-label">Review Notes</label>
+              <textarea id="review_text" class="form-control" rows="4" placeholder="Add your review, actions taken, or comments..." required></textarea>
+              <div class="invalid-feedback">Please enter review notes.</div>
+            </div>
+            <div class="col-12 col-md-6">
+              <label for="review_status" class="form-label">Update Status</label>
+              <select id="review_status" class="form-select">
+                <option value="Open">Open</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Resolved">Resolved</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-6">
+              <label for="review_rating" class="form-label">Priority/Rating (1-5)</label>
+              <input id="review_rating" type="number" min="1" max="5" class="form-control" placeholder="Optional" />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button id="review_submit_btn" type="submit" class="btn btn-primary">Save Review</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script id="grievances-json" type="application/json">{{ grievances|tojson|safe }}</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+  (function() {
+    // Dark mode toggle (scoped)
+    
+
+    // Data and helpers
+    const DATA = JSON.parse(document.getElementById('grievances-json')?.textContent || '[]');
+    let filtered = [...DATA];
+    let page = 1;
+    const pageSize = 10;
+
+    const tbody = document.getElementById('grievances-body');
+    const pager = document.getElementById('pager');
+    const pageInfo = document.getElementById('page-info');
+    const searchInput = document.getElementById('search-input');
+    const statusFilter = document.getElementById('status-filter');
+
+    const STORAGE_KEY = 'dept_recent_grievances_filters_v1';
+
+    function statusClass(s) {
+      if (s === 'Open') return 'badge bg-warning text-dark';
+      if (s === 'Resolved') return 'badge bg-success';
+      return 'badge bg-secondary';
+    }
+
+    function renderTable() {
+      const start = (page - 1) * pageSize;
+      const rows = filtered.slice(start, start + pageSize);
+      if (!tbody) return;
+      tbody.innerHTML = rows.map(g => {
+        const hasCoords = g.latitude && g.longitude;
+        const mapCell = hasCoords
+          ? `<a href="https://www.google.com/maps?q=${encodeURIComponent(g.latitude)},${encodeURIComponent(g.longitude)}" target="_blank" rel="noopener" class="text-decoration-none" title="View on map"><i class="bi bi-geo-alt-fill text-primary"></i></a>`
+          : '<span class="text-muted small">—</span>';
+        return `
+        <tr>
+          <td>${g.id ?? ''}</td>
+          <td class="fw-semibold">${(g.title ?? '').replace(/</g,'&lt;')}</td>
+          <td><span class="badge bg-light text-dark">${g.category ?? ''}</span></td>
+          <td><span class="${statusClass(g.status)}">${g.status ?? ''}</span></td>
+          <td class="small text-muted">${g.user_ref ?? ''}</td>
+          <td class="small text-muted">${g.created_at ?? ''}</td>
+          <td class="text-center">${mapCell}</td>
+          <td class="text-center">
+            <button type="button" class="btn btn-sm btn-primary review-btn" data-bs-toggle="modal" data-bs-target="#reviewModal" data-id="${g.id ?? ''}" data-title="${(g.title ?? '').replace(/</g,'&lt;')}" data-status="${g.status ?? ''}">
+              <i class="bi bi-chat-left-text me-1"></i> Review
+            </button>
+          </td>
+        </tr>`;
+      }).join('') || '<tr><td colspan="8" class="text-center text-muted py-4">No grievances to show.</td></tr>';
+
+      const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+      page = Math.min(page, totalPages);
+      let html = '';
+      function li(disabled, active, label, p) {
+        return `<li class="page-item ${disabled ? 'disabled' : ''} ${active ? 'active' : ''}"><a class="page-link" href="#" data-page="${p}">${label}</a></li>`;
+      }
+      html += li(page===1, false, '«', Math.max(1, page-1));
+      const windowSize = 3;
+      const startPage = Math.max(1, page - windowSize);
+      const endPage = Math.min(totalPages, page + windowSize);
+      for (let p = startPage; p <= endPage; p++) html += li(false, p===page, p, p);
+      html += li(page===totalPages, false, '»', Math.min(totalPages, page+1));
+      if (pager) pager.innerHTML = html;
+      if (pageInfo) pageInfo.textContent = `${filtered.length} items · Page ${page} of ${totalPages}`;
+    }
+
+    function applyFilters() {
+      const q = (searchInput?.value || '').toLowerCase().trim();
+      const sf = statusFilter?.value || 'all';
+
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ q: searchInput?.value || '', sf }));
+      } catch (_) {}
+
+      filtered = DATA.filter(g => {
+        const matchesQ = !q || (String(g.title||'').toLowerCase().includes(q) || String(g.user_ref||'').toLowerCase().includes(q));
+        const st = String(g.status||'');
+        const matchesS = sf==='all' || (sf==='other' ? (st!=='Open' && st!=='Resolved') : st===sf);
+        return matchesQ && matchesS;
+      });
+      page = 1;
+      renderTable();
+      updateChart();
+    }
+
+    function debounce(fn, delay) {
+      let t;
+      return function(...args) {
+        clearTimeout(t);
+        t = setTimeout(() => fn.apply(this, args), delay);
+      };
+    }
+
+    const applyFiltersDebounced = debounce(applyFilters, 180);
+
+    pager?.addEventListener('click', function(e){
+      const a = e.target.closest('a[data-page]');
+      if (!a) return;
+      e.preventDefault();
+      page = parseInt(a.getAttribute('data-page')) || 1;
+      renderTable();
+    });
+
+    searchInput?.addEventListener('input', applyFiltersDebounced);
+    statusFilter?.addEventListener('change', applyFilters);
+
+    document.getElementById('export-csv')?.addEventListener('click', function(){
+      const head = ['Id','Title','Category','Status','User Ref','Created'];
+      const csvRows = [head.join(',')];
+      filtered.forEach(g => {
+        const row = [g.id, g.title, g.category, g.status, g.user_ref, g.created_at]
+          .map(v => '"' + String(v??'').replace(/"/g,'""') + '"')
+          .join(',');
+        csvRows.push(row);
+      });
+      const blob = new Blob([csvRows.join('\n')], {type: 'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'grievances.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+
+    const ctx = document.getElementById('statusChart');
+    let chart;
+    function updateChart() {
+      if (!ctx || !window.Chart) return;
+      const counts = {Open:0, Resolved:0, Other:0};
+      filtered.forEach(g => {
+        if (g.status === 'Open') counts.Open++;
+        else if (g.status === 'Resolved') counts.Resolved++;
+        else counts.Other++;
+      });
+      const data = {
+        labels: ['Open','Resolved','Other'],
+        datasets: [{
+          label: 'Grievances',
+          data: [counts.Open, counts.Resolved, counts.Other],
+          backgroundColor: ['#f59e0b','#22c55e','#3b82f6'],
+        }]
+      };
+      if (chart) { chart.data = data; chart.update(); return; }
+      chart = new Chart(ctx, { type: 'bar', data, options: { responsive: true, plugins: { legend: { display: false } } } });
+    }
+
+    function getModalInstance() {
+      const el = document.getElementById('reviewModal');
+      if (!el || !window.bootstrap) return null;
+      return window.bootstrap.Modal.getOrCreateInstance(el);
+    }
+
+    document.addEventListener('click', function(e){
+      const btn = e.target.closest('.review-btn');
+      if (!btn) return;
+
+      const reviewIdInput = document.getElementById('review_grievance_id');
+      const reviewTitleEl = document.getElementById('review_grievance_title');
+      const reviewStatusSelect = document.getElementById('review_status');
+      const reviewTextArea = document.getElementById('review_text');
+      const reviewRatingInput = document.getElementById('review_rating');
+
+      const gid = btn.getAttribute('data-id');
+      const gtitle = btn.getAttribute('data-title') || '';
+      const gstatus = btn.getAttribute('data-status') || '';
+      if (reviewIdInput) reviewIdInput.value = gid;
+      if (reviewTitleEl) reviewTitleEl.textContent = gtitle;
+      if (reviewStatusSelect) reviewStatusSelect.value = gstatus && ['Open','Resolved','In Progress'].includes(gstatus) ? gstatus : 'Open';
+      if (reviewTextArea) reviewTextArea.value = '';
+      if (reviewRatingInput) reviewRatingInput.value = '';
+
+      const mi = getModalInstance();
+      mi && mi.show();
+    });
+
+    document.addEventListener('submit', async function(e){
+      if (e.target && e.target.id === 'reviewForm') {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const reviewIdInput = document.getElementById('review_grievance_id');
+        const reviewStatusSelect = document.getElementById('review_status');
+        const reviewTextArea = document.getElementById('review_text');
+        const reviewRatingInput = document.getElementById('review_rating');
+        const reviewSubmitBtn = document.getElementById('review_submit_btn');
+
+        const payload = {
+          grievance_id: reviewIdInput?.value,
+          status: reviewStatusSelect?.value,
+          review_text: reviewTextArea?.value,
+          rating: reviewRatingInput?.value
+        };
+
+        reviewSubmitBtn && (reviewSubmitBtn.disabled = true);
+        try {
+          const res = await fetch('/department/grievance/review', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json().catch(()=>({success:false,error:'Invalid server response'}));
+          if (!res.ok || !data.success) throw new Error(data.error || 'Failed to save review');
+
+          const gidNum = Number(payload.grievance_id);
+          const item = DATA.find(x => Number(x.id) === gidNum);
+          if (item && payload.status) item.status = payload.status;
+
+          applyFilters();
+
+          const mi = getModalInstance();
+          setTimeout(()=>{ mi && mi.hide(); }, 200);
+
+          let message = 'Review saved successfully.';
+          let alertClass = 'alert alert-success';
+          if (payload.status === 'Resolved') {
+            if (data.email_sent) {
+              message = 'Grievance marked as Resolved. Email sent to the user successfully.';
+              alertClass = 'alert alert-success';
+            } else {
+              const reason = data.email_error ? ` (${data.email_error})` : '';
+              message = 'Grievance marked as Resolved, but email could not be sent to the user' + reason + '.';
+              alertClass = 'alert alert-danger';
+            }
+          }
+          const alert = document.createElement('div');
+          alert.className = alertClass + ' alert-dismissible fade show position-fixed top-0 end-0 m-3';
+          alert.role = 'alert';
+          alert.innerHTML = message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+          document.body.appendChild(alert);
+          setTimeout(()=>{ alert.remove(); }, 3500);
+        } catch (err) {
+          const alert = document.createElement('div');
+          alert.className = 'alert alert-danger alert-dismissible fade show position-fixed top-0 end-0 m-3';
+          alert.role = 'alert';
+          alert.innerHTML = (err?.message || 'Failed to save review') + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+          document.body.appendChild(alert);
+          setTimeout(()=>{ alert.remove(); }, 4500);
+        } finally {
+          reviewSubmitBtn && (reviewSubmitBtn.disabled = false);
+        }
+        return false;
+      }
+    });
+
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+      if (saved && typeof saved === 'object') {
+        if (searchInput && typeof saved.q === 'string') searchInput.value = saved.q;
+        if (statusFilter && typeof saved.sf === 'string') statusFilter.value = saved.sf;
+      }
+    } catch (_) {}
+
+    applyFilters();
+  })();
+</script>
+{% endblock %}

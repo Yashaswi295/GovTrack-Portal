@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block head %}
+<style>
+  .auth-hero { position: relative; min-height: 100vh; display:flex; align-items:center; background: radial-gradient(1200px 600px at 10% 10%, rgba(13,110,253,0.15), transparent), radial-gradient(1200px 600px at 90% 40%, rgba(25,135,84,0.12), transparent), linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);} 
+  .blob { position:absolute; border-radius:50%; filter:blur(40px); opacity:.5; }
+  .blob-1 { width:320px; height:320px; background:#0d6efd; top:-80px; left:-80px; }
+  .blob-2 { width:280px; height:280px; background:#20c997; bottom:-60px; right:-60px; }
+  .auth-card { backdrop-filter: blur(20px); background: rgba(255,255,255,.6); border:1px solid rgba(255,255,255,.4); transition:.3s; }
+  .auth-card:hover { transform: translateY(-6px); box-shadow: 0 1rem 2rem rgba(0,0,0,.08);} 
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="auth-hero">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="container position-relative" style="z-index:2;">
+    <div class="row justify-content-center">
+      <div class="col-md-5">
+        <div class="card auth-card p-4 p-lg-5 rounded-4 shadow-sm">
+          <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
+            <i class="bi bi-building text-success fs-3"></i>
+            <h3 class="fw-bold mb-0">Department Login</h3>
+          </div>
+
+          {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+          {% endwith %}
+
+          <form method="POST" action="{{ url_for('department_login') }}">
+            <div class="mb-3">
+              <label class="fw-semibold">Department Email or Name</label>
+              <input type="text" name="identifier" class="form-control form-control-lg" placeholder="email or name" required>
+            </div>
+            <div class="mb-3">
+              <label class="fw-semibold">Password</label>
+              <input type="password" name="password" class="form-control form-control-lg" placeholder="password" required>
+            </div>
+            <button type="submit" class="btn btn-success w-100 btn-lg">Login</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

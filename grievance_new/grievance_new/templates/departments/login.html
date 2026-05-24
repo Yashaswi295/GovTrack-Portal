@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block head %}
+<style>
+  .dept-auth {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    background:
+      radial-gradient(900px 500px at 12% 18%, rgba(34, 197, 94, 0.18), transparent 60%),
+      radial-gradient(1000px 650px at 85% 35%, rgba(20, 184, 166, 0.16), transparent 55%),
+      linear-gradient(180deg, rgba(2, 6, 23, 1) 0%, rgba(15, 23, 42, 1) 100%);
+    overflow: hidden;
+  }
+
+  .dept-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
+    background-size: 48px 48px;
+    opacity: 0.25;
+    mask-image: radial-gradient(ellipse at center, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 70%);
+    pointer-events: none;
+  }
+
+  .dept-card {
+    background: rgba(15, 23, 42, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-radius: 18px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.45);
+  }
+
+  .dept-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: rgba(34, 197, 94, 0.10);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+    color: #86efac;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+  }
+
+  .dept-input {
+    background: rgba(2, 6, 23, 0.35) !important;
+    border: 1px solid rgba(255,255,255,0.12) !important;
+    color: #f8fafc !important;
+  }
+
+  .dept-input:focus {
+    border-color: rgba(34, 197, 94, 0.55) !important;
+    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12) !important;
+  }
+
+  .dept-help {
+    color: rgba(226,232,240,0.75);
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 576px) {
+    .dept-card { border-radius: 16px; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="dept-auth">
+  <div class="dept-grid"></div>
+  <div class="container position-relative" style="z-index:2;">
+    <div class="row justify-content-center align-items-center">
+      <div class="col-11 col-sm-10 col-md-6 col-lg-5">
+        <div class="dept-card p-4 p-md-5">
+          <div class="text-center mb-4">
+            <div class="dept-badge mb-3">
+              <i class="fas fa-building-columns"></i>
+              Department Access
+            </div>
+            <h2 class="fw-bold mb-1">Department Login</h2>
+            <div class="dept-help">Use your department email/name and password</div>
+          </div>
+
+          {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+          {% endwith %}
+
+          <form method="POST" action="{{ url_for('department_login') }}">
+            <div class="mb-3">
+              <label class="fw-semibold">Department Email or Name</label>
+              <div class="position-relative">
+                <span class="position-absolute top-50 translate-middle-y" style="left: 14px; color: rgba(148,163,184,0.9)">
+                  <i class="fas fa-id-badge"></i>
+                </span>
+                <input type="text" name="identifier" class="form-control form-control-lg dept-input" style="padding-left: 44px;" placeholder="email or name" required>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="fw-semibold">Password</label>
+              <div class="position-relative">
+                <span class="position-absolute top-50 translate-middle-y" style="left: 14px; color: rgba(148,163,184,0.9)">
+                  <i class="fas fa-lock"></i>
+                </span>
+                <input type="password" name="password" class="form-control form-control-lg dept-input" style="padding-left: 44px;" placeholder="password" required>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-success w-100 btn-lg fw-semibold">
+              Login to Dashboard
+            </button>
+          </form>
+
+          <div class="mt-4 text-center dept-help">
+            Admin login?
+            <a href="{{ url_for('admin_login') }}" class="text-success fw-semibold text-decoration-none">Go to Admin</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

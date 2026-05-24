@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container" style="padding-top: 40px; padding-bottom: 60px; max-width: 920px;">
+  <div style="text-align:center; margin-bottom: 28px;">
+    <div style="display:inline-block; padding: 8px 14px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.03); border-radius: 999px; color: var(--text-muted); font-weight: 600;">
+      FAQs
+    </div>
+    <h1 style="margin-top: 14px; font-size: 2.2rem;">Frequently Asked Questions</h1>
+    <p style="margin: 8px auto 0; color: var(--text-muted); max-width: 720px;">
+      Quick answers to the most common questions about submitting and tracking grievances.
+    </p>
+  </div>
+
+  <div class="accordion" id="faqAccordion" style="border: 1px solid var(--glass-border); border-radius: 16px; overflow: hidden; background: rgba(255,255,255,0.02);">
+
+    <div class="accordion-item" style="background: transparent; border: 0; border-bottom: 1px solid var(--glass-border);">
+      <h2 class="accordion-header" id="faqHeadingOne">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapseOne" aria-expanded="true" aria-controls="faqCollapseOne" style="background: transparent; color: var(--text-main); font-weight: 700;">
+          What is the Purpose of GovTrack?
+        </button>
+      </h2>
+      <div id="faqCollapseOne" class="accordion-collapse collapse show" aria-labelledby="faqHeadingOne" data-bs-parent="#faqAccordion">
+        <div class="accordion-body" style="color: var(--text-muted); line-height: 1.7;">
+          GovTrack provides a digital platform where citizens can report civic issues and track public project progress using AI and geospatial technologies. The system bridges the gap between citizens and authorities by enabling real-time monitoring and automated complaint management.
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item" style="background: transparent; border: 0; border-bottom: 1px solid var(--glass-border);">
+      <h2 class="accordion-header" id="faqHeadingTwo">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapseTwo" aria-expanded="false" aria-controls="faqCollapseTwo" style="background: transparent; color: var(--text-main); font-weight: 700;">
+          Who can raise a grievance in GovTrack?
+        </button>
+      </h2>
+      <div id="faqCollapseTwo" class="accordion-collapse collapse" aria-labelledby="faqHeadingTwo" data-bs-parent="#faqAccordion">
+        <div class="accordion-body" style="color: var(--text-muted); line-height: 1.7;">
+          In GovTrack, any registered citizen and any resident affected by a civic issue can raise an issue or file the complaint.
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item" style="background: transparent; border: 0; border-bottom: 1px solid var(--glass-border);">
+      <h2 class="accordion-header" id="faqHeadingThree">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapseThree" aria-expanded="false" aria-controls="faqCollapseThree" style="background: transparent; color: var(--text-main); font-weight: 700;">
+          What problem does GovTrack solve?
+        </button>
+      </h2>
+      <div id="faqCollapseThree" class="accordion-collapse collapse" aria-labelledby="faqHeadingThree" data-bs-parent="#faqAccordion">
+        <div class="accordion-body" style="color: var(--text-muted); line-height: 1.7;">
+          GovTrack addresses delays and lack of transparency in traditional complaint systems. It digitizes the process, reduces manual dependency and ensures faster routing and tracking of civic issues.
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item" style="background: transparent; border: 0; border-bottom: 1px solid var(--glass-border);">
+      <h2 class="accordion-header" id="faqHeadingFour">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapseFour" aria-expanded="false" aria-controls="faqCollapseFour" style="background: transparent; color: var(--text-main); font-weight: 700;">
+          How does GovTrack automatically route complaints?
+        </button>
+      </h2>
+      <div id="faqCollapseFour" class="accordion-collapse collapse" aria-labelledby="faqHeadingFour" data-bs-parent="#faqAccordion">
+        <div class="accordion-body" style="color: var(--text-muted); line-height: 1.7;">
+          GovTrack uses Natural Language Processing (NLP) to analyze complaint descriptions and classify the issue type. Based on predefined mappings between issue categories and departments, the system automatically forwards the complaint to the appropriate authority without manual intervention, ensuring faster and more accurate processing.
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item" style="background: transparent; border: 0;">
+      <h2 class="accordion-header" id="faqHeadingFive">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapseFive" aria-expanded="false" aria-controls="faqCollapseFive" style="background: transparent; color: var(--text-main); font-weight: 700;">
+          How is GovTrack different from existing civic apps?
+        </button>
+      </h2>
+      <div id="faqCollapseFive" class="accordion-collapse collapse" aria-labelledby="faqHeadingFive" data-bs-parent="#faqAccordion">
+        <div class="accordion-body" style="color: var(--text-muted); line-height: 1.7;">
+          Unlike conventional civic complaint platforms, GovTrack integrates AI-based image validation, NLP-driven auto-routing, interactive geospatial mapping and a public transparency dashboard.
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item" style="background: transparent; border: 0;">
+      <h2 class="accordion-header" id="faqHeadingFive">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapseFive" aria-expanded="false" aria-controls="faqCollapseFive" style="background: transparent; color: var(--text-main); font-weight: 700;">
+          Where can the grievances be sent?
+        </button>
+      </h2>
+      <div id="faqCollapseFive" class="accordion-collapse collapse" aria-labelledby="faqHeadingFive" data-bs-parent="#faqAccordion">
+        <div class="accordion-body" style="color: var(--text-muted); line-height: 1.7;">
+          The system uses AI-based classification where grievances are automatically sent to the concerned department based on the complaint type.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
